@@ -1,0 +1,5 @@
+package elasticsearch
+
+func init(){
+
+}
