@@ -1,0 +1,5 @@
+package strategy
+
+func init(){
+
+}
