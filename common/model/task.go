@@ -12,6 +12,8 @@ type Task struct {
 
 	RequestBody RequestBody `json:"request_body"`
 
+	Process Process `json:"process"`
+
 	Depth int   `json:"depth"`
 	EndCount int   `json:"end_count"`
 }
@@ -26,3 +28,18 @@ type Cookies struct {
 	Data string `json:"data"`
 }
 
+type Process struct {
+	Url string
+	RegUrl string
+	Type string `json:"type"`  // template json self_process
+	TemplateRule TemplateRule `json:"template_rule"`
+	JsonRule JsonRule `json:"json_rule"`
+}
+
+type TemplateRule struct {
+	Rule map[string]string
+}
+
+type JsonRule struct {
+	Rule map[string]interface{}
+}

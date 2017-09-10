@@ -1,4 +1,4 @@
-package downloader
+package schedule
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 
 func TestInitDownloader(t *testing.T) {
 	InitDownloader(4)
-	DownloaderI.Push(&model.Task{Id:"hao123",Url:"http://www.hao123.com",Method:"get"})
+	ScheduleI.Push(&model.Task{Id:"hao123",Url:"http://www.hao123.com",Method:"get"})
 	time.Sleep(2*time.Second)
 }
 
