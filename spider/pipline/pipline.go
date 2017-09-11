@@ -1,6 +1,6 @@
 package pipline
 
 type Pipline interface {
-	ProcessData(interface{})
+	ProcessData(v interface{})
 }
 
