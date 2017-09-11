@@ -3,15 +3,15 @@ package rule
 import (
 	"github.com/PuerkitoBio/goquery"
 	"bytes"
-	"log"
 	"strings"
+	"YiSpider/spider/logger"
 )
 
 func TemplateProcess(rule map[string]string,htmlBytes []byte) interface{}{
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(htmlBytes))
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("NewDocumentFromReader fail,",err)
 	}
 
 	resultType := "map"
@@ -25,7 +25,7 @@ func TemplateProcess(rule map[string]string,htmlBytes []byte) interface{}{
 	}
 
 	if resultType == "array"{
-		result := []interface{}{}
+		result := []map[string]string{}
 		doc.Find(rootSel).Each(func(i int, s *goquery.Selection) {
 			data := getMapFromDom(rule,s)
 			result = append(result,data)

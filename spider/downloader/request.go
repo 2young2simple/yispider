@@ -40,7 +40,7 @@ func Get(taskId string,url string) ([]byte,error) {
 		return nil,err
 	}
 	defer res.Body.Close()
-	logger.Info("GET",url, " =>", string(body))
+	logger.Info("GET",url, " =>", res.StatusCode)
 	return body,nil
 }
 

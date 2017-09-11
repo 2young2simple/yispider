@@ -9,7 +9,11 @@ type HtmlProcess struct {
 
 }
 
-func (h *HtmlProcess)Process(task *model.Task,htmlBytes []byte) interface{}{
-	result := rule.TemplateProcess(task.Process.TemplateRule.Rule,htmlBytes)
+func NewHtmlProcess() *HtmlProcess{
+	return &HtmlProcess{}
+}
+
+func (h *HtmlProcess)Process(bytes []byte,task *model.Task) interface{}{
+	result := rule.TemplateProcess(task.Process.TemplateRule.Rule,bytes)
 	return result
 }

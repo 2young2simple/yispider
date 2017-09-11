@@ -13,6 +13,7 @@ type Config struct {
 	Name string `json:"name"`
 	Version string `json:"version"`
 	WorkNum int `json:"work_num"`
+	MaxWaitNum int `json:"max_wait_num"`
 }
 
 func InitConfig() error{
