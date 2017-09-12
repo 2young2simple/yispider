@@ -5,17 +5,32 @@ import (
 	"bytes"
 	"strings"
 	"YiSpider/spider/logger"
+	"YiSpider/spider/process/filter"
+	"YiSpider/spider/model"
 )
 
-func TemplateProcess(rule map[string]string,htmlBytes []byte) interface{}{
+func TemplateProcess(task *model.Task,htmlBytes []byte) *model.Page{
+
+	rule := task.Process.TemplateRule.Rule
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(htmlBytes))
 	if err != nil {
 		logger.Error("NewDocumentFromReader fail,",err)
 	}
 
+	urls := []string{}
+
+	doc.Find("a").Each(func (i int,sel *goquery.Selection){
+		href,_ := sel.Attr("href")
+		if filter.Filter(href,task){
+			urls = append(urls,href)
+		}
+	})
+
+
 	resultType := "map"
 	rootSel := ""
+	page := &model.Page{Urls:urls}
 
 	v,ok := rule["node"]
 	if ok{
@@ -30,14 +45,14 @@ func TemplateProcess(rule map[string]string,htmlBytes []byte) interface{}{
 			data := getMapFromDom(rule,s)
 			result = append(result,data)
 		})
-		return result
+		page.Result = result
 	}
 
 	if resultType == "map"{
-		return getMapFromDom(rule,doc.Selection)
+		page.Result = getMapFromDom(rule,doc.Selection)
 	}
 
-	return struct{}{}
+	return page
 }
 
 func getMapFromDom(rule map[string]string,node *goquery.Selection) map[string]string{

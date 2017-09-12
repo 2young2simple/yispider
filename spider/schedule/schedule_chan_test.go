@@ -2,7 +2,7 @@ package schedule
 
 import (
 	"testing"
-	"YiSpider/common/model"
+	"YiSpider/spider/model"
 	"time"
 )
 

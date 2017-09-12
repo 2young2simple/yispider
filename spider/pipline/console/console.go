@@ -2,7 +2,7 @@ package console
 
 import (
 	"fmt"
-	"YiSpider/common/model"
+	"YiSpider/spider/model"
 	"encoding/json"
 )
 

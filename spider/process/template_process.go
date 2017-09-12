@@ -1,19 +1,19 @@
 package process
 
 import (
-	"YiSpider/common/model"
+	"YiSpider/spider/model"
 	"YiSpider/spider/process/rule"
 )
 
-type HtmlProcess struct {
+type TemplateProcess struct {
 
 }
 
-func NewHtmlProcess() *HtmlProcess{
-	return &HtmlProcess{}
+func NewTemplateProcess() *TemplateProcess{
+	return &TemplateProcess{}
 }
 
-func (h *HtmlProcess)Process(bytes []byte,task *model.Task) interface{}{
-	result := rule.TemplateProcess(task.Process.TemplateRule.Rule,bytes)
+func (h *TemplateProcess)Process(bytes []byte,task *model.Task) *model.Page{
+	result := rule.TemplateProcess(task,bytes)
 	return result
 }

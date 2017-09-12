@@ -1,9 +1,11 @@
 package model
 
+
 type Task struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 	Url string  `json:"url"`
+	Host string `json:"host"`
 	Method string `json:"method"`
 
 	Header map[string]string `json:"header"`

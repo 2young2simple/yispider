@@ -33,10 +33,12 @@ func makeClient(transport http.RoundTripper, jar http.CookieJar) *http.Client {
 func Get(taskId string,url string) ([]byte,error) {
 	res, err := doRequest(taskId,"GET",url,nil)
 	if err != nil {
+		logger.Info("Download fail doRequest,url:",url,"err:",err)
 		return nil,err
 	}
 	var body []byte
 	if body, err = ioutil.ReadAll(res.Body); err != nil {
+		logger.Info("Download fail ReadAll,url:",url,"err:",err)
 		return nil,err
 	}
 	defer res.Body.Close()

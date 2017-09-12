@@ -2,7 +2,7 @@ package file
 
 import (
 	"os"
-	"YiSpider/common/model"
+	"YiSpider/spider/model"
 	"fmt"
 	"time"
 	"YiSpider/spider/logger"
@@ -45,6 +45,7 @@ func (c *FilePipline)ProcessData(v interface{},task *model.Task){
 			}
 			file.WriteString(string(data)+"\n")
 		}
+		logger.Info("File Pipline write. Count:",len(values))
 	}else{
 		data,err := json.Marshal(v)
 		if err != nil{
@@ -52,8 +53,8 @@ func (c *FilePipline)ProcessData(v interface{},task *model.Task){
 			return
 		}
 		file.WriteString(string(data)+"\n")
+		logger.Info("File Pipline write. Count:",1)
 	}
-	logger.Info("File Pipline write.")
 	return
 }
 

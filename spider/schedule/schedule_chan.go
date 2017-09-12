@@ -1,7 +1,8 @@
 package schedule
 
 import (
-	"YiSpider/common/model"
+	"YiSpider/spider/model"
+	"YiSpider/manage/logger"
 )
 
 type Schedule struct{
@@ -16,11 +17,17 @@ func NewSchedule(maxWaitNum int) *Schedule{
 
 
 func (d *Schedule) Push(task *model.Task){
+	logger.Info("Push Url:",task.Process.Url)
 	d.waitQueue <- task
 }
 
-func (d *Schedule) Pop() *model.Task{
-	return <- d.waitQueue
+func (d *Schedule) Pop() (*model.Task,bool){
+	 task,ok := <- d.waitQueue
+	return task,ok
+}
+
+func (d *Schedule)Close() {
+	close(d.waitQueue)
 }
 
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func TestFilter(t *testing.T) {
+func TestRepeatFilter(t *testing.T) {
 	task := &model.Task{
 		Id:"qiiubai",
 		Name:"qiubai",
@@ -33,10 +33,10 @@ func TestFilter(t *testing.T) {
 		Pipline:"file",
 	}
 
-	fmt.Println(Filter("/8hr/",task))
-	fmt.Println(Filter("/8hr/page/3/",task))
-	fmt.Println(Filter("/8hr/page/4/",task))
-	fmt.Println(Filter("/8hr/page/5/",task))
-	fmt.Println(Filter("/8hr/page/13/",task))
-	fmt.Println(Filter("/8hr/page/3/",task))
+	fmt.Println(RepeatFilter("/8hr/",task))
+	fmt.Println(RepeatFilter("/8hr/page/3/",task))
+	fmt.Println(RepeatFilter("/8hr/page/4/",task))
+	fmt.Println(RepeatFilter("/8hr/page/5/",task))
+	fmt.Println(RepeatFilter("/8hr/page/13/",task))
+	fmt.Println(RepeatFilter("/8hr/page/3/",task))
 }

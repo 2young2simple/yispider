@@ -1,6 +1,6 @@
 {
   "name":"yi_spider",
   "version":"0.01",
-  "work_num": 4,
+  "work_num": 1,
   "max_wait_num":4096
 }
