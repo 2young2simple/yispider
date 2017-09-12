@@ -4,6 +4,7 @@ type Task struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 	Url string  `json:"url"`
+	Host string `json:"host"`
 	Method string `json:"method"`
 
 	Header map[string]string `json:"header"`
@@ -16,6 +17,8 @@ type Task struct {
 
 	Depth int   `json:"depth"`
 	EndCount int   `json:"end_count"`
+
+	Pipline string `json:"pipline"`
 }
 
 type RequestBody struct {
@@ -30,7 +33,7 @@ type Cookies struct {
 
 type Process struct {
 	Url string
-	RegUrl string
+	RegUrl []string
 	Type string `json:"type"`  // template json self_process
 	TemplateRule TemplateRule `json:"template_rule"`
 	JsonRule JsonRule `json:"json_rule"`
