@@ -13,7 +13,6 @@ func NewTemplateProcess() *TemplateProcess{
 	return &TemplateProcess{}
 }
 
-func (h *TemplateProcess)Process(bytes []byte,task *model.Task) *model.Page{
-	result := rule.TemplateProcess(task,bytes)
-	return result
+func (h *TemplateProcess)Process(bytes []byte,task *model.Task) (*model.Page,error){
+	return rule.TemplateProcess(task,bytes)
 }

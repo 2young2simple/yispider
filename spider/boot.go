@@ -5,9 +5,17 @@ import (
 	"YiSpider/spider/model"
 	"YiSpider/spider/http"
 	"YiSpider/spider/register/etcd"
+	"YiSpider/spider/config"
+	"YiSpider/spider/logger"
 )
 
 func main(){
+
+	var err error
+	if err = config.InitConfig();err != nil{
+		logger.Info(err.Error())
+	}
+
 	task := &model.Task{
 		Id:"qiiubai",
 		Name:"qiubai",
@@ -68,8 +76,9 @@ func main(){
 	app.AddTask(task1)
 	app.Run()
 
-	worker := etcd.NewWorker("node1","127.0.0.1:7777",[]string{"http://127.0.0.1:2379"})
+	worker := etcd.NewWorker(config.ConfigI.Name,config.ConfigI.HttpAddr,config.ConfigI.Etcd)
 	go worker.HeartBeat()
+
 
 	http.InitHttpServer()
 

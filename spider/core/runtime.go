@@ -17,7 +17,7 @@ import (
 
 const Default_WorkNum  = 4
 
-type Spider struct {
+type SpiderRuntime struct {
 	sync.Mutex
 	workNum  int
 	piplines map[string]pipline.Pipline
@@ -29,14 +29,14 @@ type Spider struct {
 	recoverChan  chan int
 }
 
-func NewSpiderTask() *Spider{
+func NewSpiderRuntime() *SpiderRuntime{
 
 	workNum := config.ConfigI.WorkNum
 	if workNum == 0{
 		workNum = Default_WorkNum
 	}
 
-	spider := &Spider{}
+	spider := &SpiderRuntime{}
 	spider.workNum = workNum
 	spider.schedule = schedule.NewSchedule(config.ConfigI.MaxWaitNum)
 	spider.piplines = make(map[string]pipline.Pipline)
@@ -49,35 +49,35 @@ func NewSpiderTask() *Spider{
 	return spider
 }
 
-func (s *Spider)registerDefaultProcess(){
+func (s *SpiderRuntime)registerDefaultProcess(){
 	s.AddProcess("template",process.NewTemplateProcess())
 }
 
-func (s *Spider)registerDefaultPipline() {
+func (s *SpiderRuntime)registerDefaultPipline() {
 	s.AddPipline("file",file.NewFilePipline("./"))
 	s.AddPipline("console",console.NewConsolePipline())
 }
 
-func (s *Spider)AddProcess(key string,process process.Process) *Spider{
+func (s *SpiderRuntime)AddProcess(key string,process process.Process) *SpiderRuntime{
 	s.processMap[key] = process
 	return s
 }
 
-func (s *Spider)SetTask(task *model.Task){
+func (s *SpiderRuntime)SetTask(task *model.Task){
 	s.task = task
 }
 
-func (s *Spider)GetTask() *model.Task{
+func (s *SpiderRuntime)GetTask() *model.Task{
 	return s.task
 }
 
 
-func (s *Spider)AddPipline(key string,pipline pipline.Pipline) *Spider{
+func (s *SpiderRuntime)AddPipline(key string,pipline pipline.Pipline) *SpiderRuntime{
 	s.piplines[key] = pipline
 	return s
 }
 
-func (s *Spider)Run(){
+func (s *SpiderRuntime)Run(){
 
 	s.schedule.Push(s.task)
 
@@ -86,12 +86,12 @@ func (s *Spider)Run(){
 	}
 }
 
-func (s *Spider)Stop(){
+func (s *SpiderRuntime)Stop(){
 	s.recoverChan <- 1
 }
 
 
-func (s *Spider) worker(){
+func (s *SpiderRuntime) worker(){
 
 	for{
 		if s.stopSign{
@@ -143,7 +143,7 @@ exit:
 	logger.Info(s.task.Name,"worker close")
 }
 
-func (s *Spider) getPageProcess(task *model.Task) process.Process{
+func (s *SpiderRuntime) getPageProcess(task *model.Task) process.Process{
 	switch task.Process.Type{
 	case "template":
 		return s.processMap["template"]
@@ -153,7 +153,7 @@ func (s *Spider) getPageProcess(task *model.Task) process.Process{
 	return nil
 }
 
-func (s *Spider) download(task *model.Task) ([]byte,error){
+func (s *SpiderRuntime) download(task *model.Task) ([]byte,error){
 	time.Sleep(1*time.Second)
 	switch task.Method {
 	case "get":
@@ -166,7 +166,7 @@ func (s *Spider) download(task *model.Task) ([]byte,error){
 	return []byte{},nil
 }
 
-func (s *Spider) Exit(){
+func (s *SpiderRuntime) Exit(){
 	s.schedule.Close()
 	close(s.recoverChan)
 }

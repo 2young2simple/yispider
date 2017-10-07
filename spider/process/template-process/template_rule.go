@@ -7,21 +7,25 @@ import (
 	"YiSpider/spider/logger"
 	"YiSpider/spider/process/filter"
 	"YiSpider/spider/model"
+	url2 "net/url"
+	"fmt"
 )
 
-func TemplateProcess(task *model.Task,htmlBytes []byte) *model.Page{
+func TemplateProcess(task *model.Task,htmlBytes []byte) (*model.Page,error){
 
 	rule := task.Process.TemplateRule.Rule
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(htmlBytes))
 	if err != nil {
 		logger.Error("NewDocumentFromReader fail,",err)
+		return nil,err
 	}
 
 	urls := []string{}
 
 	doc.Find("a").Each(func (i int,sel *goquery.Selection){
 		href,_ := sel.Attr("href")
+		href = getComplateUrl(task.Process.Url,href)
 		if filter.Filter(href,task){
 			urls = append(urls,href)
 		}
@@ -46,10 +50,12 @@ func TemplateProcess(task *model.Task,htmlBytes []byte) *model.Page{
 			result = append(result,data)
 		})
 		page.Result = result
+		page.ResultCount = len(result)
 	}
 
 	if resultType == "map"{
 		page.Result = getMapFromDom(rule,doc.Selection)
+		page.ResultCount = 1
 	}
 
 	return page
@@ -90,4 +96,23 @@ func getMapFromDom(rule map[string]string,node *goquery.Selection) map[string]st
 	}
 	return result
 
+}
+
+func getComplateUrl(lastUrl string,href string) string{
+	if strings.HasPrefix(href,"http") || strings.HasPrefix(href,"https"){
+		return href
+	}
+
+	url,err := url2.Parse(lastUrl)
+	if err != nil{
+		return ""
+	}
+
+	if strings.HasPrefix(href,"/"){
+		newHref := fmt.Sprintf("%s://%s%s",url.Scheme,url.Host,href)
+		return newHref
+	}
+
+	newHref := fmt.Sprintf("%s://%s/%s",url.Scheme,url.Host,href)
+	return newHref
 }
