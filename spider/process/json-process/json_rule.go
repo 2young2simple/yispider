@@ -1,16 +1,18 @@
-package rule
+package json_process
 
 import (
 	"YiSpider/spider/model"
-	"encoding/json"
 	"YiSpider/spider/logger"
 	"strings"
 	simplejson "github.com/bitly/go-simplejson"
 )
 
-func JsonProcess(task *model.Task,bytes []byte) (*model.Page,error){
-	page := &model.Page{}
+func JsonRuleProcess(process *model.Process,bytes []byte) (*model.Page,error){
+	return Process(process.JsonRule.Rule,bytes)
+}
 
+func Process(jsonRule map[string]string,bytes []byte) (*model.Page,error){
+	page := &model.Page{}
 
 	sJson,err := simplejson.NewJson(bytes)
 	if err != nil {
@@ -18,11 +20,11 @@ func JsonProcess(task *model.Task,bytes []byte) (*model.Page,error){
 		return nil,err
 	}
 
-	jsonRule := task.Process.JsonRule.Rule
 	resultType := "map"
 	rootSel := []string{}
 
 	v,ok := jsonRule["node"]
+
 	if ok{
 		contentInfo := strings.Split(v,"|")
 		resultType = contentInfo[0]
@@ -49,6 +51,9 @@ func JsonProcess(task *model.Task,bytes []byte) (*model.Page,error){
 				}
 				data := map[string]interface{}{}
 				for key,value := range jsonRule{
+					if key == "node"{
+						continue
+					}
 					data[key] = nodeMap[value]
 				}
 				result = append(result,data)
@@ -56,6 +61,7 @@ func JsonProcess(task *model.Task,bytes []byte) (*model.Page,error){
 
 		}
 
+		page.Urls = []*model.Request{}
 		page.Result = result
 		page.ResultCount = len(result)
 	}
@@ -72,23 +78,14 @@ func JsonProcess(task *model.Task,bytes []byte) (*model.Page,error){
 			logger.Error("Json fail,",err)
 			return nil,err
 		}
-		if len(rootNode) >= 0{
-			for _,node := range rootNode{
-				nodeMap,ok := node.(map[string]interface{})
-				if !ok{
-					continue
-				}
-				data := map[string]interface{}{}
-				for key,value := range jsonRule{
-					data[key] = nodeMap[value]
-				}
-				result = append(result,data)
-			}
 
+		for key,value := range jsonRule{
+			result[key] = rootNode[value]
 		}
 
+		page.Urls = []*model.Request{}
 		page.Result = result
 		page.ResultCount = 1
 	}
-
+	return page,nil
 }

@@ -1,18 +1,25 @@
-package process
+package json_process
 
 import (
 	"YiSpider/spider/model"
-	"YiSpider/spider/process/rule"
+	"net/http"
+	"io/ioutil"
 )
 
-type TemplateProcess struct {
+type JsonProcess struct {
+	jsonProcess *model.Process
 
 }
 
-func NewTemplateProcess() *TemplateProcess{
-	return &TemplateProcess{}
+func NewJsonProcess(jsonProcess *model.Process) *JsonProcess{
+		return &JsonProcess{jsonProcess:jsonProcess}
 }
 
-func (h *TemplateProcess)Process(bytes []byte,task *model.Task) (*model.Page,error){
-	return rule.TemplateProcess(task,bytes)
+func (j *JsonProcess)Process(response *http.Response) (*model.Page,error){
+	body,err := ioutil.ReadAll(response.Body)
+	if err != nil{
+		return nil,err
+	}
+	defer response.Body.Close()
+	return JsonRuleProcess(j.jsonProcess,body)
 }

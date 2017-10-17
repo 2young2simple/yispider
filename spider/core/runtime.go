@@ -4,29 +4,36 @@ import (
 	"YiSpider/spider/schedule"
 	"YiSpider/spider/config"
 	"YiSpider/spider/logger"
-	"YiSpider/spider/pipline"
-	"YiSpider/spider/process"
 	"YiSpider/spider/downloader"
 	"YiSpider/spider/model"
-	"YiSpider/spider/pipline/file"
-	"YiSpider/spider/pipline/console"
-	"encoding/json"
 	"time"
 	"sync"
+	"sync/atomic"
+	"net/http"
+	"YiSpider/spider/spider"
 )
 
-const Default_WorkNum  = 4
+const Default_WorkNum  = 1
 
 type SpiderRuntime struct {
 	sync.Mutex
 	workNum  int
-	piplines map[string]pipline.Pipline
-	processMap map[string]process.Process
 	schedule *schedule.Schedule
-	task   *model.Task
+	spider   *spider.Spider
 
 	stopSign  bool
 	recoverChan  chan int
+
+	TaskMeta *TaskMeta
+}
+
+type TaskMeta struct {
+	DownloadFailCount int32 `json:"download_fail_count"`
+	DownloadCount int32 `json:"download_fail_count"`
+
+	UrlNum int32 `json:"url_num"`
+	WaitUrlNum int `json:"wait_url_num"`
+	CrawlerResultNum int32 `json:"crawler_result_num"`
 }
 
 func NewSpiderRuntime() *SpiderRuntime{
@@ -36,50 +43,38 @@ func NewSpiderRuntime() *SpiderRuntime{
 		workNum = Default_WorkNum
 	}
 
-	spider := &SpiderRuntime{}
-	spider.workNum = workNum
-	spider.schedule = schedule.NewSchedule(config.ConfigI.MaxWaitNum)
-	spider.piplines = make(map[string]pipline.Pipline)
-	spider.processMap = make(map[string]process.Process)
-	spider.recoverChan = make(chan int)
+	s := &SpiderRuntime{}
+	s.workNum = workNum
+	s.schedule = schedule.NewSchedule(config.ConfigI.MaxWaitNum)
+	s.recoverChan = make(chan int)
+	meta := &TaskMeta{}
+	meta.WaitUrlNum = 0
+	meta.UrlNum = int32(0)
+	meta.DownloadCount = int32(0)
+	meta.DownloadFailCount = int32(0)
+	meta.CrawlerResultNum = int32(0)
 
-	spider.registerDefaultProcess()
-	spider.registerDefaultPipline()
+	s.TaskMeta = meta
 
-	return spider
-}
-
-func (s *SpiderRuntime)registerDefaultProcess(){
-	s.AddProcess("template",process.NewTemplateProcess())
-}
-
-func (s *SpiderRuntime)registerDefaultPipline() {
-	s.AddPipline("file",file.NewFilePipline("./"))
-	s.AddPipline("console",console.NewConsolePipline())
-}
-
-func (s *SpiderRuntime)AddProcess(key string,process process.Process) *SpiderRuntime{
-	s.processMap[key] = process
 	return s
 }
 
-func (s *SpiderRuntime)SetTask(task *model.Task){
-	s.task = task
+
+func (s *SpiderRuntime)SetSpider(spider *spider.Spider) {
+	s.spider = spider
 }
 
-func (s *SpiderRuntime)GetTask() *model.Task{
-	return s.task
+func (s *SpiderRuntime)GetSpider() *spider.Spider{
+	return s.spider
 }
 
-
-func (s *SpiderRuntime)AddPipline(key string,pipline pipline.Pipline) *SpiderRuntime{
-	s.piplines[key] = pipline
-	return s
-}
 
 func (s *SpiderRuntime)Run(){
-
-	s.schedule.Push(s.task)
+	if s.stopSign{
+		s.recoverChan <- 1
+		return
+	}
+	s.schedule.PushMuti(s.spider.GetRequests())
 
 	for i:=0;i<s.workNum;i++{
 		go s.worker()
@@ -87,7 +82,7 @@ func (s *SpiderRuntime)Run(){
 }
 
 func (s *SpiderRuntime)Stop(){
-	s.recoverChan <- 1
+	s.stopSign = true
 }
 
 
@@ -96,74 +91,64 @@ func (s *SpiderRuntime) worker(){
 	for{
 		if s.stopSign{
 			_,ok := <- s.recoverChan
+			s.stopSign = false
 			if !ok{
 				goto exit
 			}
 		}
 
-		task,ok := s.schedule.Pop()
+		req,ok := s.schedule.Pop()
 		if !ok{
 			goto exit
 		}
-		logger.Info("Pop Url:",task.Process.Url)
 
-		bytes,err := s.download(task)
+		atomic.AddInt32(&s.TaskMeta.DownloadCount,1)
+		response,err := s.download(req)
 		if err != nil{
+			logger.Error(err.Error())
+			atomic.AddInt32(&s.TaskMeta.DownloadFailCount,1)
 			continue
 		}
-
-		curProcess := s.getPageProcess(task)
-		if curProcess == nil{
-			logger.Info("getPageProcess fail, not find the process key:",task.Process.Type)
-			continue
-		}
-
-		page := curProcess.Process(bytes,task)
-
-		for _,url := range page.Urls{
-			logger.Info("Dicover Url:",task.Process.Url)
-
-				//TODO BIG BIG BUG ... deadlock repeat
-			aj, _ := json.Marshal(task)
-			copy := new(model.Task)
-			_ = json.Unmarshal(aj,copy)
-			copy.Process.Url = task.Host+url
-			s.schedule.Push(copy)
-		}
-
-		pip,ok := s.piplines[task.Pipline]
+		p,ok := s.spider.Process[req.ProcessName]
 		if !ok{
-			logger.Info("get Pipline fail, not find the pipline key:",task.Pipline)
-			continue
+			logger.Info("process is not find ! please call SetProcess|SetTask")
+			break
 		}
-		pip.ProcessData(page.Result,task)
+
+		page,err := p.Process(response)
+		if err!= nil{
+			logger.Info("Process error|",err.Error())
+			break
+		}
+
+		atomic.AddInt32(&s.TaskMeta.UrlNum,int32(len(page.Urls)))
+
+		s.TaskMeta.WaitUrlNum = s.schedule.Count()
+
+		go func (){
+			s.schedule.PushMuti(page.Urls)
+		}()
+
+		atomic.AddInt32(&s.TaskMeta.CrawlerResultNum,int32(page.ResultCount))
+
+		s.spider.Pipline.ProcessData(page.Result,s.spider.Name,req.ProcessName)
 	}
 
 exit:
-	logger.Info(s.task.Name,"worker close")
+	logger.Info(s.spider.Name,"worker close")
 }
 
-func (s *SpiderRuntime) getPageProcess(task *model.Task) process.Process{
-	switch task.Process.Type{
-	case "template":
-		return s.processMap["template"]
-	case "json":
-		return s.processMap["json"]
-	}
-	return nil
-}
 
-func (s *SpiderRuntime) download(task *model.Task) ([]byte,error){
+func (s *SpiderRuntime) download(req *model.Request) (*http.Response,error){
 	time.Sleep(1*time.Second)
-	switch task.Method {
+	switch req.Method {
 	case "get":
-		//logger.Info("Download Url :",task.Process.Url)
-		return downloader.Get(task.Id,task.Process.Url)
+		return downloader.Get(req.ProcessName,req.Url)
 	case "post":
-		return downloader.PostJson(task.Id,task.Process.Url,task.RequestBody.Data)
+		return downloader.PostJson(req.ProcessName,req.Url,req.Data)
 	}
 
-	return []byte{},nil
+	return nil,nil
 }
 
 func (s *SpiderRuntime) Exit(){

@@ -3,15 +3,18 @@ package downloader
 import (
 	"net/http"
 	"bytes"
-	"io/ioutil"
 	"net/http/cookiejar"
 	"golang.org/x/net/publicsuffix"
 	"time"
 	"encoding/json"
 	"YiSpider/spider/logger"
+	"errors"
+	"fmt"
+	"sync"
 )
 
 var Clients map[string]*http.Client
+var lock sync.RWMutex
 
 func init(){
 	Clients = make(map[string]*http.Client)
@@ -30,38 +33,33 @@ func makeClient(transport http.RoundTripper, jar http.CookieJar) *http.Client {
 	return &http.Client{Jar: jar, Transport: transport, Timeout: 60 * time.Second}
 }
 
-func Get(taskId string,url string) ([]byte,error) {
+func Get(taskId string,url string) (*http.Response,error) {
 	res, err := doRequest(taskId,"GET",url,nil)
 	if err != nil {
 		logger.Info("Download fail doRequest,url:",url,"err:",err)
 		return nil,err
 	}
-	var body []byte
-	if body, err = ioutil.ReadAll(res.Body); err != nil {
-		logger.Info("Download fail ReadAll,url:",url,"err:",err)
-		return nil,err
-	}
-	defer res.Body.Close()
 	logger.Info("GET",url, " =>", res.StatusCode)
-	return body,nil
+	if res.StatusCode >= 400{
+		return nil,errors.New(fmt.Sprintf("download fail,url %s, StatusCode %d",url,res.StatusCode))
+	}
+	return res,nil
 }
 
-func PostJson(taskId string,url string,data interface{}) ([]byte,error) {
+func PostJson(taskId string,url string,data interface{}) (*http.Response,error) {
 	dataJ,err := json.Marshal(data)
 	if err != nil{
 		return nil,err
 	}
-	logger.Info("Request:",string(dataJ))
 	res, err := doRequest(taskId,"POST",url,dataJ)
 	if err != nil {
 		return nil,err
 	}
-	var body []byte
-	if body, err = ioutil.ReadAll(res.Body); err != nil {
-		return nil,err
+	logger.Info("POST",url,"=>", res.StatusCode)
+	if res.StatusCode >= 400{
+		return nil,errors.New(fmt.Sprintf("download fail, StatusCode %d",res.StatusCode))
 	}
-	logger.Info("POST",url,"=>",string(body))
-	return body,nil
+	return res,nil
 }
 
 func doRequest(id string,method string,url string,data []byte) (resp *http.Response, err error){
@@ -69,11 +67,24 @@ func doRequest(id string,method string,url string,data []byte) (resp *http.Respo
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
-	client := Clients[id]
+	//req.Header.Set("Content-Type", "application/json")
+	client := getClient(id)
 	if client == nil{
 		client = makeClient(nil,makeCookiejar())
-		Clients[id] = client
+		setClient(id,client)
 	}
 	return client.Do(req)
+}
+
+func setClient(id string,client *http.Client){
+	lock.Lock()
+	defer lock.Unlock()
+	Clients[id] = client
+}
+
+func getClient(id string) *http.Client{
+	lock.RLock()
+	defer lock.RUnlock()
+	client := Clients[id]
+	return client
 }

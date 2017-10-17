@@ -1,7 +1,11 @@
 package process
 
-import "YiSpider/spider/model"
+import (
+	"YiSpider/spider/model"
+	"net/http"
+)
+
 
 type Process interface {
-	Process(bytes []byte,task *model.Task) *model.Page
+	Process(response *http.Response) (*model.Page,error)
 }

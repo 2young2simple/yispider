@@ -1,6 +1,10 @@
 {
-  "name":"yi_spider",
+  "name":"qiubai_spider",
   "version":"0.01",
   "work_num": 1,
-  "max_wait_num":4096
+  "max_wait_num":4096,
+
+  "http_addr":"127.0.0.1:7775",
+  "etcd":["http://127.0.0.1:2379"]
+
 }

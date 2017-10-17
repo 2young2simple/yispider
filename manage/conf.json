@@ -1,4 +1,7 @@
 {
   "name":"yi_spider_manage",
-  "version":"0.01"
+  "version":"0.01",
+  "discover":"etcd",
+  "http_addr":"127.0.0.1:7778",
+  "etcd":["http://127.0.0.1:2379"]
 }

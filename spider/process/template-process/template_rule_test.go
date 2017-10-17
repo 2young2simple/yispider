@@ -1,4 +1,4 @@
-package rule
+package template_process
 
 import (
 	"testing"
@@ -16,6 +16,7 @@ func TestTemplateProcess(t *testing.T) {
 	if err != nil{
 		t.Fatal("get html fail ",err)
 	}
+
 	rule := map[string]string{
 		"node":"array|.article",
 		"url":"attr.href|.contentHerf",
@@ -25,7 +26,7 @@ func TestTemplateProcess(t *testing.T) {
 		"comment_num":"text|.stats-comments a i",
 	}
 
-	result := TemplateProcess(rule,[]byte(html))
+	result,_ := TemplateRuleProcess(rule,[]byte(html))
 	data,_ := json.Marshal(result)
 	fmt.Println("Result :",string(data))
 }

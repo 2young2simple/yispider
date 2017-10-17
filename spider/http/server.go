@@ -2,15 +2,20 @@ package http
 
 import (
 	"net/http"
-	"io"
 	"log"
 	"net/url"
 	"YiSpider/spider/core"
 	"encoding/json"
+	"YiSpider/spider/config"
+	"io/ioutil"
+	spider2 "YiSpider/spider/spider"
+	"YiSpider/spider/model"
 )
 
 var errorMethod = []byte("{\"code\":\"400\",\"msg\":\"not support method\"}")
 var errorQuery = []byte("{\"code\":\"400\",\"msg\":\"error url parmas\"}")
+var errorJson = []byte("{\"code\":\"400\",\"msg\":\"error prase json \"}")
+var errorReadBody = []byte("{\"code\":\"400\",\"msg\":\"error read body\"}")
 var commonSuccess = []byte("{\"code\":\"200\",\"msg\":\"success\"}")
 
 
@@ -20,7 +25,24 @@ func AddTask(w http.ResponseWriter, req *http.Request) {
 		w.Write(errorMethod)
 		return
 	}
-	io.WriteString(w, "hello, world!\n")
+	body,err := ioutil.ReadAll(req.Body)
+	if err != nil{
+		w.Write(errorReadBody)
+		return
+	}
+	spider := &model.Task{}
+	err = json.Unmarshal(body,spider)
+	if err != nil{
+		w.Write(errorJson)
+		return
+	}
+	err = core.GetEnine().AddSpider(spider2.InitWithTask(spider)).RunTask(spider.Name)
+	if err != nil{
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Write(commonSuccess)
+	return
 }
 
 func StopTask(w http.ResponseWriter, req *http.Request) {
@@ -100,15 +122,15 @@ func ListTask(w http.ResponseWriter, req *http.Request) {
 }
 
 func InitHttpServer() {
-	http.HandleFunc("/task/add", AddTask)
+	http.HandleFunc("/task/addAndRun", AddTask)
 	http.HandleFunc("/task/run", RunTask)
 	http.HandleFunc("/task/stop", StopTask)
 	http.HandleFunc("/task/end", EndTask)
 	http.HandleFunc("/tasks", ListTask)
 
-
-	err := http.ListenAndServe(":7777", nil)
+	err := http.ListenAndServe(config.ConfigI.HttpAddr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe fail:", err)
 	}
+
 }

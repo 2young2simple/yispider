@@ -14,6 +14,9 @@ type Config struct {
 	Version string `json:"version"`
 	WorkNum int `json:"work_num"`
 	MaxWaitNum int `json:"max_wait_num"`
+
+	HttpAddr string `json:"http_addr"`
+	Etcd []string `json:"etcd"`
 }
 
 func InitConfig() error{

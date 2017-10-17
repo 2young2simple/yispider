@@ -1,2 +1,5 @@
 .idea/
 .idea
+*_result.txt
+.DS_Store
+*.txt

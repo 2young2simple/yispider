@@ -5,9 +5,6 @@ import (
 	"os"
 	"io/ioutil"
 	"YiSpider/manage/logger"
-	"os/exec"
-	"strings"
-	"fmt"
 )
 
 var ConfigI *Config
@@ -15,6 +12,10 @@ var ConfigI *Config
 type Config struct {
 	Name string `json:"name"`
 	Version string `json:"version"`
+
+	Discover string `json:"discover"`
+	HttpAddr string `json:"http_addr"`
+	Etcd []string `json:"etcd"`
 }
 
 func InitConfig() error{
@@ -22,7 +23,7 @@ func InitConfig() error{
 	var bytes []byte
 	var err error
 
-	if file,err = os.OpenFile("./manage/conf.json",os.O_RDONLY,0666);err != nil{
+	if file,err = os.OpenFile("./conf.json",os.O_RDONLY,0666);err != nil{
 		return err
 	}
 

@@ -1,4 +1,4 @@
-package schedule
+package http
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"net/http/cookiejar"
 	"golang.org/x/net/publicsuffix"
 	"time"
-	"testing"
 	"encoding/json"
 )
 
@@ -30,7 +29,7 @@ func makeCookiejar() http.CookieJar {
 }
 
 func MakeClient(transport http.RoundTripper) *http.Client {
-	return &http.Client{Jar: makeCookiejar(), Transport: transport, Timeout: 60 * time.Second}
+	return &http.Client{Jar: makeCookiejar(), Transport: transport, Timeout: 5 * time.Second}
 }
 
 

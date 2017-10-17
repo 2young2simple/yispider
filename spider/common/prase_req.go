@@ -1,4 +1,4 @@
-package schedule
+package common
 
 import (
 	"YiSpider/spider/model"
@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func PraseReq(reqs []*model.Request,ctx map[string]string) []*model.Request{
+func PraseReq(reqs []*model.Request,ctx map[string]interface{}) []*model.Request{
 	resultsReqs := []*model.Request{}
 	for _,req := range reqs{
 		results,ok := isRuleReq(req,ctx)
@@ -20,7 +20,7 @@ func PraseReq(reqs []*model.Request,ctx map[string]string) []*model.Request{
 	return resultsReqs
 }
 
-func isRuleReq(req *model.Request,ctx map[string]string) ([]*model.Request,bool){
+func isRuleReq(req *model.Request,ctx map[string]interface{}) ([]*model.Request,bool){
 	reqs := []*model.Request{}
 	isMatch := false
 
@@ -40,7 +40,6 @@ func isRuleReq(req *model.Request,ctx map[string]string) ([]*model.Request,bool)
 			findRule = true
 		}
 	}
-	fmt.Println(isMatch)
 
 	if !isMatch {
 		return nil,false
@@ -65,7 +64,7 @@ func isRuleReq(req *model.Request,ctx map[string]string) ([]*model.Request,bool)
 	return reqs,isMatch
 }
 
-// http://xxxxxxxx.com/abc/{1-400,10}/     {begin-end,offset}
+// http://xxxxxxxx.com/abc/{begin-end,offset}/   example:{1-400,10}
 func PraseOffset(req *model.Request,rule string) ([]*model.Request,bool){
 	reqs := []*model.Request{}
 
@@ -95,6 +94,7 @@ func PraseOffset(req *model.Request,rule string) ([]*model.Request,bool){
 
 	return reqs,true
 }
+
 // http://xxxxxxxx.com/abc/{id1|id2|id3}/
 func PraseOr(req *model.Request,rule string) ([]*model.Request,bool){
 	reqs := []*model.Request{}
@@ -114,7 +114,7 @@ func PraseOr(req *model.Request,rule string) ([]*model.Request,bool){
 }
 
 // http://xxxxxxxx.com/abc/{name}/{id}/
-func PraseParamCtx(req *model.Request,rule string,ctx map[string]string) ([]*model.Request,bool){
+func PraseParamCtx(req *model.Request,rule string,ctx map[string]interface{}) ([]*model.Request,bool){
 	reqs := []*model.Request{}
 
 	contains := strings.Contains(rule,"|")
@@ -124,9 +124,24 @@ func PraseParamCtx(req *model.Request,rule string,ctx map[string]string) ([]*mod
 		return nil,false
 	}
 
-	url := strings.Replace(req.Url,"{"+rule+"}",ctx[rule],1)
-	r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-	reqs = append(reqs,r)
+	ruleUrl,_ := ctx[rule]
+	urlArray,ok :=  ruleUrl.([]string)
+	if ok{
+		for _,url := range urlArray{
+			u := strings.Replace(req.Url,"{"+rule+"}",string(url),1)
+			r := &model.Request{Url:u,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
+			reqs = append(reqs,r)
+		}
+		return reqs,true
+	}
+
+	urlStr,ok := ruleUrl.(string)
+	if ok{
+		url := strings.Replace(req.Url,"{"+rule+"}",string(urlStr),1)
+		r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
+		reqs = append(reqs,r)
+		return reqs,true
+	}
 
 	return reqs,true
 }

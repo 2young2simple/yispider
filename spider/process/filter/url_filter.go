@@ -3,19 +3,15 @@ package filter
 import (
 	"YiSpider/spider/model"
 	"regexp"
-	"strings"
 )
 
-func Filter(url string,task *model.Task) bool{
+func Filter(url string,process *model.Process) bool{
 	if len(url) == 0 {
-		return false
-	}
-	if !strings.HasPrefix(url,"/"){
 		return false
 	}
 
 	check := false
-	for _,regUrl := range task.Process.RegUrl{
+	for _,regUrl := range process.RegUrl{
 		reg := regexp.MustCompile(regUrl)
 		match := reg.MatchString(url)
 		if match{
@@ -28,5 +24,5 @@ func Filter(url string,task *model.Task) bool{
 		return false
 	}
 
-	return RepeatFilter(url,task)
+	return RepeatFilter(url,process)
 }

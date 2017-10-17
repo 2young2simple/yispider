@@ -1,8 +1,6 @@
 package pipline
 
-import "YiSpider/spider/model"
 
 type Pipline interface {
-	ProcessData(v interface{},task *model.Task)
+	ProcessData(v interface{},taskName string,processName string)
 }
-

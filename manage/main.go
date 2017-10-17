@@ -3,6 +3,8 @@ package main
 import (
 	"YiSpider/manage/logger"
 	"YiSpider/manage/config"
+	"YiSpider/manage/discover"
+	"YiSpider/manage/http"
 )
 
 func main(){
@@ -13,5 +15,9 @@ func main(){
 		logger.Info(err.Error())
 		return
 	}
+
+	discover.InitDiscover()
+
+	http.InitHttpServer()
 
 }
