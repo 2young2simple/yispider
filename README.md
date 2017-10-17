@@ -3,11 +3,19 @@ A distributed spider platform
 
 ### 介绍
 一款分布式爬虫平台，帮助你更好的管理和开发爬虫。
-内置一套爬虫定义规则（模版），可使用模版快速定义爬虫，也可手动开发爬虫。
+内置一套爬虫定义规则（模版），可使用模版快速定义爬虫，也可当作框架手动开发爬虫。
 ### 架构
 目前平台分为2个部分：<br>
-1.爬虫部分（spider节点）:负责爬虫生命周期的管理，负责爬虫的运行。
+1.爬虫部分（spider节点）:
+<br>
 内部结构高度模仿python scrapy框架，主要由 schedule,page process,pipline 组成，单个爬虫单独调度器，单独上下文管理,目前内置2中pipline的方式，控制台和文件，后续添加mysql,nsq,kafka支持,节点信息注册在etcd上用于manage节点发现。 
+<br>
+`core`:负责爬虫生命周期、上下文的管理，负责爬虫的运行。<br>
+`schedule`:负责爬虫请求的调度。(目前只有一种基于channel的调度器，无法单个爬虫多worker运行，`可自行实现基于redis，或者mq服务的调度器即可实现`)<br>
+`process (page process)`：负责请求结果的处理。<br>
+`pipline`： 结果的输出输出到不同渠道,如控制台，文件，消息队列，数据库等等<br>
+`register`：负责服务的注册（目前只支持etcd）。
+
 <br>
 2.管理部分（manage节点）:负责spider节点的管理，用etcd进行spider节点的发现。通过http与spider节点通讯。
 <br>
