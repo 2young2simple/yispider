@@ -8,7 +8,7 @@ A distributed spider platform
 目前平台分为2个部分：<br>
 1.爬虫部分（spider节点）:
 <br>
-内部结构高度模仿python scrapy框架，主要由 schedule,page process,pipline 组成，单个爬虫单独调度器，单独上下文管理,目前内置2中pipline的方式，控制台和文件，后续添加mysql,nsq,kafka支持,节点信息注册在etcd上用于manage节点发现。 
+内部结构高度模仿python scrapy框架，主要由 schedule,page process,pipline 组成，单个爬虫单独调度器，单独上下文管理,目前内置2中pipline的方式，控制台和文件,节点信息注册在etcd上用于manage节点发现。 
 <br>
 `core`:负责爬虫生命周期、上下文的管理，负责爬虫的运行。<br>
 `schedule`:负责爬虫请求的调度。(目前只有一种基于channel的调度器，无法单个爬虫多worker运行，`可自行实现基于redis，或者mq服务的调度器即可实现`)<br>
