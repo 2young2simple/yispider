@@ -38,24 +38,13 @@ curl -d '{"id":"douban-movie","Name":"douban-movie","request":[{"url":"https://m
         {
             "url": "https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0-10,20}",
             "method": "get",
-            "type": "",
-            "data": null,
-            "header": null,
-            "cookies": {
-                "url": "",
-                "data": ""
-            },
             "process_name": "movie"
         }
     ],
     "process": [
         {
             "name": "movie",
-            "reg_url": null,
             "type": "json",
-            "template_rule": {
-                "Rule": null
-            },
             "json_rule": {
                 "Rule": {
                     "casts": "casts",
@@ -86,20 +75,12 @@ dilidili模版
         {
             "url": "http://www.dilidili.wang/{gaoxiao|kehuan|yundong|danmei|zhiyuxi|luoli|zhenren|zhuangbi|youxi|tuili|qingchun|kongbu|jizhan|rexue|qingxiaoshuo|maoxian|hougong|qihuan|tongnian|lianai|meishaonv|lizhi|baihe|paomianfan|yinv}/",
             "method": "get",
-            "type": "",
-            "data": null,
-            "header": null,
-            "cookies": {
-                "url": "",
-                "data": ""
-            },
             "process_name": "animelist"
         }
     ],
     "process": [
         {
             "name": "animelist",
-            "reg_url": null,
             "type": "template",
             "template_rule": {
                 "Rule": {
@@ -111,27 +92,16 @@ dilidili模版
                     "title": "text|dd h3 a"
                 }
             },
-            "json_rule": {
-                "Rule": null
-            },
             "add_queue": [
                 {
                     "url": "http://www.dilidili.wang{href}",
                     "method": "get",
-                    "type": "",
-                    "data": null,
-                    "header": null,
-                    "cookies": {
-                        "url": "",
-                        "data": ""
-                    },
                     "process_name": "animeinfo"
                 }
             ]
         },
         {
             "name": "animeinfo",
-            "reg_url": null,
             "type": "template",
             "template_rule": {
                 "Rule": {
@@ -140,20 +110,10 @@ dilidili模版
                     "title": "text|.detail dl dd h1"
                 }
             },
-            "json_rule": {
-                "Rule": null
-            },
             "add_queue": [
                 {
                     "url": "{episode-link}",
                     "method": "get",
-                    "type": "",
-                    "data": null,
-                    "header": null,
-                    "cookies": {
-                        "url": "",
-                        "data": ""
-                    },
                     "process_name": "episodeinfo"
                 }
             ]
@@ -168,9 +128,6 @@ dilidili模版
                     "title": "text|#intro2 h1",
                     "url": "attr.href|link[rel=\"canonical\"]"
                 }
-            },
-            "json_rule": {
-                "Rule": null
             },
             "add_queue": null
         }
