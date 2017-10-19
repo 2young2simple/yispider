@@ -20,6 +20,7 @@ A distributed spider platform
 2.管理部分（manage节点）:负责spider节点的管理，用etcd进行spider节点的发现。通过http与spider节点通讯。
 <br>
 
+
 ###开始使用
 
 #### 1. Json模版 (http接口)
