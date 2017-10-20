@@ -1,31 +1,33 @@
 # YiSpider
 A distributed spider platform
 
-### 介绍
+## 介绍
+
 一款分布式爬虫平台，帮助你更好的管理和开发爬虫。
-内置一套爬虫定义规则（模版），可使用模版快速定义爬虫，也可当作框架手动开发爬虫。
-### 架构
-目前平台分为2个部分：<br>
-1.爬虫部分（spider节点）:
-<br>
-内部结构高度模仿python scrapy框架，主要由 schedule,page process,pipline 组成，单个爬虫单独调度器，单独上下文管理,目前内置2中pipline的方式，控制台和文件,节点信息注册在etcd上用于manage节点发现。 
-<br>
-`core`:负责爬虫生命周期、上下文的管理，负责爬虫的运行。<br>
-`schedule`:负责爬虫请求的调度。(目前只有一种基于channel的调度器，无法单个爬虫多worker运行，`可自行实现基于redis，或者mq服务的调度器即可实现`)<br>
-`process (page process)`：负责请求结果的处理。<br>
-`pipline`： 结果的输出输出到不同渠道,如控制台，文件，消息队列，数据库等等<br>
-`register`：负责服务的注册（目前只支持etcd）。
+内置一套爬虫定义规则（模版），可使用模版快速定义爬虫，也可当作框架手动开发爬虫
 
-<br>
-2.管理部分（manage节点）:负责spider节点的管理，用etcd进行spider节点的发现。通过http与spider节点通讯。
-<br>
+## 架构
 
+目前框架分为2个部分:  
+#### 1.爬虫部分（spider节点）:
 
-### 开始使用
+内部结构参考python scrapy框架，主要由 schedule,page process,pipline 4个部分组成，单个爬虫单独调度器，单独上下文管理,目前内置2中pipline的方式，控制台和文件,节点信息注册在etcd上用于manage节点发现。 
 
-#### 1. Json模版 (http接口)
-curl 使用
+* `core`:负责爬虫生命周期、上下文的管理，负责爬虫的运行。
+* `schedule`:负责爬虫请求的调度。(目前只有一种基于channel的调度器，无法单个爬虫多worker运行，`可自行实现基于redis，或者mq服务的调度器即可实现`)<br>
+* `process (page process)`：负责请求结果的处理。<br>
+* `pipline`： 结果的输出输出到不同渠道,如控制台，文件，消息队列，数据库等等<br>
+* `register`：负责服务的注册（目前只支持etcd)  
+* `http`: 提供一些http接口
+
+#### 2.管理部分（manage节点）:  
+负责spider节点的管理，用etcd进行spider节点的发现。通过http与spider节点通讯。
+
+## 开始使用
+
+#### 1. Json模版
 ```
+http接口调用
 curl -d '{"id":"douban-movie","Name":"douban-movie","request":[{"url":"https://movie.douban.com/j/new_search_subjects?sort=T\u0026range=0,10\u0026tags=\u0026start={0-100,20}","method":"get","type":"","data":null,"header":null,"cookies":{"url":"","data":""},"process_name":"movie"}],"process":[{"name":"movie","reg_url":null,"type":"json","template_rule":{"Rule":null},"json_rule":{"Rule":{"casts":"casts","cover":"cover","id":"id","node":"array|data","rate":"rate","star":"star","title":"title","url":"url"}},"add_queue":null}],"pipline":"file","depth":0,"end_count":0}' "http://127.0.0.1:7774/task/addAndRun"
 ```
 
