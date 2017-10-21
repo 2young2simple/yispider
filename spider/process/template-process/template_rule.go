@@ -143,8 +143,8 @@ func getMapFromDom(rule map[string]string,node *goquery.Selection) map[string]in
 			default:
 				result[key] = ""
 		}
-
-		if len(result[key].(string)) != 0{
+		res,ok := result[key].(string)
+		if ok||len(res) != 0{
 			isNull = false
 		}
 	}

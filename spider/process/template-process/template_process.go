@@ -15,6 +15,7 @@ func NewTemplateProcess(tempProcess *model.Process) *TemplateProcess{
 
 func (t *TemplateProcess)Process(response *http.Response) (*model.Page,error){
 	return TemplateRuleProcess(t.tempProcess,response)
+
 }
 
 
