@@ -6,6 +6,10 @@ A distributed spider platform
 一款分布式爬虫平台，帮助你更好的管理和开发爬虫。
 内置一套爬虫定义规则（模版），可使用模版快速定义爬虫，也可当作框架手动开发爬虫
 
+## 计划
+* 正在准备内置实现基于redis，或者mq服务的调度器，敬请期待。
+* 正在准备管理网页端部分的制作，敬请期待。
+
 ## 架构
 
 目前框架分为2个部分:  
@@ -22,6 +26,7 @@ A distributed spider platform
 
 #### 2.管理部分（manage节点）:  
 负责spider节点的管理，用etcd进行spider节点的发现。通过http与spider节点通讯。
+
 
 ## 开始使用
 
