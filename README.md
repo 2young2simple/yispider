@@ -7,6 +7,7 @@ A distributed spider platform
 内置一套爬虫定义规则（模版），可使用模版快速定义爬虫，也可当作框架手动开发爬虫
 
 ## 计划
+* 正在准备增加更多例子。
 * 正在准备内置实现基于redis，或者mq服务的调度器，敬请期待。
 * 正在准备管理网页端部分的制作，敬请期待。
 
@@ -30,6 +31,31 @@ A distributed spider platform
 
 ## 开始使用
 
+### 请求介绍
+
+初始请求（Request）Url有2种模版方式,用于简便易用：
+1. http://xxx/xxx/{begin-end,offset}  
+```
+start = 0 20 40 ... 10000
+url = https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0-10000,20}
+```
+2. http://xxx/xxx/{aa|bb|cc}
+```
+start = 0 20 40 60
+url = https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0|20|40|60}
+
+```
+运行中生成请求(add_queue)，上述1，2仍有，多以下一种。
+```
+如果 href = "/abc" (href是process解析出的参数)
+url = http://www.dilidili.wang{href}
+url = http://www.dilidili.wang/abc
+
+参数可以是数组。
+```
+
+
+### 实例
 #### 1. Json模版
 ```
 http接口调用
