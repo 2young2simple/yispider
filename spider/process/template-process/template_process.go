@@ -2,7 +2,6 @@ package template_process
 
 import (
 	"YiSpider/spider/model"
-	"net/http"
 )
 
 type TemplateProcess struct {
@@ -13,8 +12,8 @@ func NewTemplateProcess(tempProcess *model.Process) *TemplateProcess{
 		return &TemplateProcess{tempProcess: tempProcess}
 }
 
-func (t *TemplateProcess)Process(response *http.Response) (*model.Page,error){
-	return TemplateRuleProcess(t.tempProcess,response)
+func (t *TemplateProcess)Process(context model.Context) (*model.Page,error){
+	return TemplateRuleProcess(t.tempProcess,context)
 
 }
 

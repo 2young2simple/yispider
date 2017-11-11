@@ -2,8 +2,6 @@ package json_process
 
 import (
 	"YiSpider/spider/model"
-	"net/http"
-	"io/ioutil"
 )
 
 type JsonProcess struct {
@@ -15,11 +13,6 @@ func NewJsonProcess(jsonProcess *model.Process) *JsonProcess{
 		return &JsonProcess{jsonProcess:jsonProcess}
 }
 
-func (j *JsonProcess)Process(response *http.Response) (*model.Page,error){
-	body,err := ioutil.ReadAll(response.Body)
-	if err != nil{
-		return nil,err
-	}
-	defer response.Body.Close()
-	return JsonRuleProcess(j.jsonProcess,body)
+func (j *JsonProcess)Process(context model.Context) (*model.Page,error){
+	return JsonRuleProcess(j.jsonProcess,context)
 }

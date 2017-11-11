@@ -9,22 +9,15 @@ import (
 	"YiSpider/spider/model"
 	url2 "net/url"
 	"fmt"
-	"net/http"
-	"io/ioutil"
 	"YiSpider/spider/common"
 	"encoding/json"
 )
 
-func TemplateRuleProcess(process *model.Process,response *http.Response) (*model.Page,error){
-	htmlBytes,err := ioutil.ReadAll(response.Body)
-	if err != nil{
-		return nil,err
-	}
-	defer response.Body.Close()
+func TemplateRuleProcess(process *model.Process,context model.Context) (*model.Page,error){
 
 	rule := process.TemplateRule.Rule
 
-	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(htmlBytes))
+	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(context.Body))
 	if err != nil {
 		logger.Error("NewDocumentFromReader fail,",err)
 		return nil,err
@@ -35,7 +28,7 @@ func TemplateRuleProcess(process *model.Process,response *http.Response) (*model
 	if len(process.RegUrl) > 0{
 		doc.Find("a").Each(func(i int, sel *goquery.Selection) {
 			href, _ := sel.Attr("href")
-			href = getComplateUrl(response.Request.URL, href)
+			href = getComplateUrl(context.Request.URL, href)
 			if filter.Filter(href, process) {
 				urls = append(urls, &model.Request{Url:href,Method:"get",})
 			}

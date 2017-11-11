@@ -19,7 +19,7 @@ type Spider struct {
 
 	Requests []*model.Request
 
-	Process map[string]process.Process
+	Process map[string][]process.Process
 	Pipline pipline.Pipline
 }
 
@@ -28,7 +28,7 @@ func (s *Spider)GetPipline() pipline.Pipline{
 	return s.Pipline
 }
 
-func (s *Spider)GetProcess(name string) process.Process{
+func (s *Spider)GetProcess(name string) []process.Process{
 	return s.Process[name]
 }
 
@@ -44,14 +44,24 @@ func InitWithTask(task *model.Task) *Spider {
 	s.EndCount = task.EndCount
 	s.Requests = task.Request
 
-	s.Process = make(map[string]process.Process)
+	s.Process = make(map[string][]process.Process)
 
 	for i,p := range task.Process{
 		switch p.Type {
 		case "template":
-			s.Process[p.Name] = template_process.NewTemplateProcess(&task.Process[i])
+			processs,ok := s.Process[p.Name]
+			if !ok {
+				processs = []process.Process{}
+				s.Process[p.Name] = processs
+			}
+			s.Process[p.Name] = append(processs,template_process.NewTemplateProcess(&task.Process[i]))
 		case "json":
-			s.Process[p.Name] = json_process.NewJsonProcess(&task.Process[i])
+			processs,ok := s.Process[p.Name]
+			if !ok {
+				processs = []process.Process{}
+				s.Process[p.Name] = processs
+			}
+			s.Process[p.Name] = append(processs,json_process.NewJsonProcess(&task.Process[i]))
 		}
 	}
 

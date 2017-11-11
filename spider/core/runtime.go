@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"net/http"
 	"YiSpider/spider/spider"
+	"io/ioutil"
 )
 
 const Default_WorkNum  = 1
@@ -87,6 +88,7 @@ func (s *SpiderRuntime)Stop(){
 
 
 func (s *SpiderRuntime) worker(){
+	context := model.Context{}
 
 	for{
 		if s.stopSign{
@@ -109,29 +111,49 @@ func (s *SpiderRuntime) worker(){
 			atomic.AddInt32(&s.TaskMeta.DownloadFailCount,1)
 			continue
 		}
-		p,ok := s.spider.Process[req.ProcessName]
+
+		body,err := ioutil.ReadAll(response.Body)
+		if err != nil{
+			logger.Error(err.Error())
+			continue
+		}
+
+		context.Clear()
+		context.Body = body
+		context.Request = response.Request
+		context.Header = response.Header
+
+		ps,ok := s.spider.Process[req.ProcessName]
 		if !ok{
+			response.Body.Close()
 			logger.Info("process is not find ! please call SetProcess|SetTask")
 			break
 		}
+		for _,p := range ps{
+			page,err := p.Process(context)
+			if err!= nil{
+				logger.Info("Process error|",err.Error())
+				continue
+			}
+			s.TaskMeta.WaitUrlNum = s.schedule.Count()
 
-		page,err := p.Process(response)
-		if err!= nil{
-			logger.Info("Process error|",err.Error())
-			break
+			if len(page.Urls) > 0 {
+				atomic.AddInt32(&s.TaskMeta.UrlNum, int32(len(page.Urls)))
+
+				go func() {
+					s.schedule.PushMuti(page.Urls)
+				}()
+			}
+
+			if page.ResultCount > 0 {
+
+				atomic.AddInt32(&s.TaskMeta.CrawlerResultNum, int32(page.ResultCount))
+
+				s.spider.Pipline.ProcessData(page.Result, s.spider.Name, req.ProcessName)
+			}
 		}
 
-		atomic.AddInt32(&s.TaskMeta.UrlNum,int32(len(page.Urls)))
-
-		s.TaskMeta.WaitUrlNum = s.schedule.Count()
-
-		go func (){
-			s.schedule.PushMuti(page.Urls)
-		}()
-
-		atomic.AddInt32(&s.TaskMeta.CrawlerResultNum,int32(page.ResultCount))
-
-		s.spider.Pipline.ProcessData(page.Result,s.spider.Name,req.ProcessName)
+		response.Body.Close()
 	}
 
 exit:

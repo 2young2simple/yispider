@@ -5,9 +5,11 @@ import (
 	"strings"
 	"strconv"
 	"fmt"
+	"encoding/json"
 )
 
 func PraseReq(reqs []*model.Request,ctx map[string]interface{}) []*model.Request{
+
 	resultsReqs := []*model.Request{}
 	for _,req := range reqs{
 		results,ok := isRuleReq(req,ctx)
@@ -138,6 +140,22 @@ func PraseParamCtx(req *model.Request,rule string,ctx map[string]interface{}) ([
 	urlStr,ok := ruleUrl.(string)
 	if ok{
 		url := strings.Replace(req.Url,"{"+rule+"}",string(urlStr),1)
+		r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
+		reqs = append(reqs,r)
+		return reqs,true
+	}
+
+	urlNumber,ok := ruleUrl.(json.Number)
+	if ok{
+		url := strings.Replace(req.Url,"{"+rule+"}",string(urlNumber),1)
+		r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
+		reqs = append(reqs,r)
+		return reqs,true
+	}
+
+	urlInt,ok := ruleUrl.(int)
+	if ok{
+		url := strings.Replace(req.Url,"{"+rule+"}",strconv.Itoa(urlInt),1)
 		r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
 		reqs = append(reqs,r)
 		return reqs,true
