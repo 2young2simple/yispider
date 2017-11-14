@@ -7,9 +7,9 @@ A distributed spider platform
 内置一套爬虫定义规则（模版），可使用模版快速定义爬虫，也可当作框架手动开发爬虫
 
 ## 计划
-* 正在准备增加更多例子。
-* 正在准备内置实现基于redis，或者mq服务的调度器，敬请期待。
-* 正在准备管理网页端部分的制作，敬请期待。
+- [√] 正在准备增加更多例子。
+- [√] 正在准备内置实现基于redis，或者mq服务的调度器。
+- [x] 正在准备管理网页端部分的制作，敬请期待。
 
 ## 架构
 
@@ -18,12 +18,12 @@ A distributed spider platform
 
 内部结构参考python scrapy框架，主要由 schedule,page process,pipline 4个部分组成，单个爬虫单独调度器，单独上下文管理,目前内置2中pipline的方式，控制台和文件,节点信息注册在etcd上用于manage节点发现。 
 
-* `core`:负责爬虫生命周期、上下文的管理，负责爬虫的运行。
-* `schedule`:负责爬虫请求的调度。(目前只有一种基于channel的调度器，无法单个爬虫多worker运行，`可自行实现基于redis，或者mq服务的调度器即可实现`)<br>
-* `process (page process)`：负责请求结果的处理。<br>
-* `pipline`： 结果的输出输出到不同渠道,如控制台，文件，消息队列，数据库等等<br>
-* `register`：负责服务的注册（目前只支持etcd)  
-* `http`: 提供一些http接口
+- `core`:负责爬虫生命周期、上下文的管理，负责爬虫的运行。
+- `schedule`:负责爬虫请求的调度。(基于 channel 或 redis 的调度器)
+- `process`：负责请求结果的处理。
+- `pipline`： 结果的输出输出到不同渠道,如控制台，文件，消息队列，数据库等等
+- `register`：负责服务的注册（目前只支持etcd)
+- `http`: 提供一些http接口
 
 #### 2.管理部分（manage节点）:  
 负责spider节点的管理，用etcd进行spider节点的发现。通过http与spider节点通讯。
@@ -33,25 +33,27 @@ A distributed spider platform
 
 ### 请求介绍
 
-初始请求（Request）Url有2种模版方式,用于简便易用：
-1. http://xxx/xxx/{begin-end,offset}  
+初始请求（Request）Url有2种语法糖方式,用于简便易用：
+#### 1. http://xxx/xxx/{begin-end,offset}
 ```
 start = 0 20 40 ... 10000
 url = https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0-10000,20}
 ```
-2. http://xxx/xxx/{aa|bb|cc}
+#### 2. http://xxx/xxx/{aa|bb|cc}
 ```
 start = 0 20 40 60
 url = https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0|20|40|60}
 
 ```
-运行中生成请求(add_queue)，上述1，2仍有，多以下一种。
+#### 3.http://www.dilidili.wang{$href}  (AddQueue特有)
+
 ```
 如果 href = "/abc" (href是process解析出的参数)
-url = http://www.dilidili.wang{href}
+url = http://www.dilidili.wang{$href}
 url = http://www.dilidili.wang/abc
+url = https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0-$count,20}
+等等
 
-参数可以是数组。
 ```
 
 
@@ -259,7 +261,7 @@ func main(){
 				AddQueue:[]*model.Request{
 					{
 						Method:      "get",
-						Url:         "http://www.dilidili.wang{href}",
+						Url:         "http://www.dilidili.wang{$href}",
 						ProcessName: "animeinfo",
 					},
 				},
@@ -277,7 +279,7 @@ func main(){
 				AddQueue:[]*model.Request{
 					{
 						Method:      "get",
-						Url:         "{episode-link}",
+						Url:         "{$episode-link}",
 						ProcessName: "episodeinfo",
 					},
 				},
