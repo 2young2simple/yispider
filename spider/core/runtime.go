@@ -6,12 +6,13 @@ import (
 	"YiSpider/spider/logger"
 	"YiSpider/spider/downloader"
 	"YiSpider/spider/model"
-	"time"
+	//"time"
 	"sync"
 	"sync/atomic"
 	"net/http"
 	"YiSpider/spider/spider"
 	"io/ioutil"
+	"YiSpider/spider/common"
 )
 
 const Default_WorkNum  = 1
@@ -19,7 +20,7 @@ const Default_WorkNum  = 1
 type SpiderRuntime struct {
 	sync.Mutex
 	workNum  int
-	schedule *schedule.Schedule
+	schedule schedule.Schedule
 	spider   *spider.Spider
 
 	stopSign  bool
@@ -46,7 +47,7 @@ func NewSpiderRuntime() *SpiderRuntime{
 
 	s := &SpiderRuntime{}
 	s.workNum = workNum
-	s.schedule = schedule.NewSchedule(config.ConfigI.MaxWaitNum)
+	s.schedule = schedule.GetSchedule(config.ConfigI)
 	s.recoverChan = make(chan int)
 	meta := &TaskMeta{}
 	meta.WaitUrlNum = 0
@@ -103,6 +104,10 @@ func (s *SpiderRuntime) worker(){
 		if !ok{
 			goto exit
 		}
+		if req == nil{
+			logger.Info("schedule is emply")
+			continue
+		}
 
 		atomic.AddInt32(&s.TaskMeta.DownloadCount,1)
 		response,err := s.download(req)
@@ -119,7 +124,10 @@ func (s *SpiderRuntime) worker(){
 		}
 
 		context.Clear()
-		context.Body = body
+		context.Body,err = common.ToUtf8(body)
+		if err != nil{
+			context.Body = body
+		}
 		context.Request = response.Request
 		context.Header = response.Header
 
@@ -162,7 +170,7 @@ exit:
 
 
 func (s *SpiderRuntime) download(req *model.Request) (*http.Response,error){
-	time.Sleep(1*time.Second)
+	//time.Sleep(1*time.Second)
 	switch req.Method {
 	case "get":
 		return downloader.Get(req.ProcessName,req.Url)

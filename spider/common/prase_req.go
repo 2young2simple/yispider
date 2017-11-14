@@ -4,12 +4,11 @@ import (
 	"YiSpider/spider/model"
 	"strings"
 	"strconv"
-	"fmt"
 	"encoding/json"
+	"regexp"
 )
 
 func PraseReq(reqs []*model.Request,ctx map[string]interface{}) []*model.Request{
-
 	resultsReqs := []*model.Request{}
 	for _,req := range reqs{
 		results,ok := isRuleReq(req,ctx)
@@ -22,57 +21,58 @@ func PraseReq(reqs []*model.Request,ctx map[string]interface{}) []*model.Request
 	return resultsReqs
 }
 
+func FindRule(text string) [][]string{
+	reg := regexp.MustCompile(`{([^}]+)}`)
+	return reg.FindAllStringSubmatch(text,-1)
+}
+
 func isRuleReq(req *model.Request,ctx map[string]interface{}) ([]*model.Request,bool){
-	reqs := []*model.Request{}
+	reqs := []*model.Request{req}
+	outReqs := []*model.Request{}
+	finalReqs := []*model.Request{}
 	isMatch := false
 
-	findRule := false
-	rule := ""
-	for i := 0;i< len(req.Url);i++{
-		if findRule{
-			if req.Url[i] == '}'{
-				findRule = false
-				isMatch = true
-				break
-			}
-			rule = rule + string(req.Url[i])
-		}
-
-		if req.Url[i] == '{'{
-			findRule = true
-		}
-	}
-
-	if !isMatch {
+	rules := FindRule(req.Url)
+	if len(rules) > 0{
+		isMatch = true
+	}else{
 		return nil,false
 	}
 
 	if ctx != nil{
-		reqs,isMatch = PraseParamCtx(req,rule,ctx)
-		if isMatch{
-			return reqs,true
-		}
+		reqs,isMatch = PraseParamCtx(req,rules,ctx)
+	}
+	for _,r := range reqs {
+		outReqs = append(outReqs, PraseOffset(r)...)
 	}
 
-	reqs,isMatch = PraseOffset(req,rule)
-	if isMatch{
-		return reqs,true
-	}
-	reqs,isMatch = PraseOr(req,rule)
-	if isMatch{
-		return reqs,true
+	for _,r := range outReqs{
+		finalReqs = append(finalReqs,PraseOr(r)...)
 	}
 
-	return reqs,isMatch
+	if isMatch{
+		return finalReqs,true
+	}
+
+	return finalReqs,isMatch
 }
 
 // http://xxxxxxxx.com/abc/{begin-end,offset}/   example:{1-400,10}
-func PraseOffset(req *model.Request,rule string) ([]*model.Request,bool){
+func PraseOffset(req *model.Request) ([]*model.Request){
 	reqs := []*model.Request{}
+	outrReqs := []*model.Request{}
 
+
+	rules := FindRule(req.Url)
+	if len(rules) <= 0{
+		return []*model.Request{req}
+	}
+
+	rule := rules[0][1]
 	sp := strings.Split(rule,",")
+
 	if len(sp) != 2{
-		return reqs,false
+		return []*model.Request{req}
 	}
 
 	rs := strings.Split(sp[0],"-")
@@ -82,83 +82,125 @@ func PraseOffset(req *model.Request,rule string) ([]*model.Request,bool){
 	end,err = strconv.Atoi(rs[1])
 	offset,err = strconv.Atoi(sp[1])
 	if err != nil{
-		return reqs,false
+		return []*model.Request{req}
 	}
 	if offset == 0{
-		return reqs,false
+		return []*model.Request{req}
 	}
-	fmt.Println("begin",begin,"end",end,"offset",offset)
-	for i:=begin;i < end;i = i + offset{
+
+	for i:=begin;i <= end;i = i + offset{
 		url := strings.Replace(req.Url,"{"+rule+"}",strconv.Itoa(i)  ,1)
 		req := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
 		reqs = append(reqs,req)
 	}
 
-	return reqs,true
+	for _,r := range reqs{
+		outrReqs = append(outrReqs,PraseOffset(r)...)
+	}
+
+	return outrReqs
 }
 
 // http://xxxxxxxx.com/abc/{id1|id2|id3}/
-func PraseOr(req *model.Request,rule string) ([]*model.Request,bool){
+func PraseOr(req *model.Request) ([]*model.Request){
 	reqs := []*model.Request{}
+	outrReqs := []*model.Request{}
 
-	sp := strings.Split(rule,"|")
-	if len(sp) < 2{
-		return nil,false
+
+	rules := FindRule(req.Url)
+	if len(rules) <= 0{
+		return []*model.Request{req}
+	}
+	ruleArray := rules[0]
+	rule := ruleArray[1]
+	sp := strings.Split(rule, "|")
+	if len(sp) < 2 {
+		return []*model.Request{req}
 	}
 
-	for _,word := range sp{
-		url := strings.Replace(req.Url,"{"+rule+"}",word,1)
-		req := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-		reqs = append(reqs,req)
+	for _, word := range sp {
+		url := strings.Replace(req.Url, "{"+rule+"}", word, 1)
+		r := &model.Request{Url: url, Method: req.Method, ContentType: req.ContentType, Data: req.Data, Header: req.Header, Cookies: req.Cookies, ProcessName: req.ProcessName}
+		reqs = append(reqs, r)
 	}
 
-	return reqs,true
+	for _,r := range reqs{
+		outrReqs = append(outrReqs,PraseOr(r)...)
+	}
+
+	return outrReqs
 }
 
 // http://xxxxxxxx.com/abc/{name}/{id}/
-func PraseParamCtx(req *model.Request,rule string,ctx map[string]interface{}) ([]*model.Request,bool){
+func PraseParamCtx(req *model.Request,rules [][]string,ctx map[string]interface{}) ([]*model.Request,bool){
 	reqs := []*model.Request{}
+	reqUrl := req.Url
 
-	contains := strings.Contains(rule,"|")
-	contains = strings.Contains(rule,",")
-
-	if contains{
-		return nil,false
+	count := strings.Count(reqUrl,"$")
+	if count <= 0{
+		return []*model.Request{req},false
 	}
 
-	ruleUrl,_ := ctx[rule]
-	urlArray,ok :=  ruleUrl.([]string)
-	if ok{
-		for _,url := range urlArray{
-			u := strings.Replace(req.Url,"{"+rule+"}",string(url),1)
-			r := &model.Request{Url:u,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-			reqs = append(reqs,r)
+	for ctxName,ruleUrl := range ctx{
+		urlArray,ok :=  ruleUrl.([]string)
+		if ok{
+			for _,url := range urlArray{
+				u := strings.Replace(reqUrl,"{$"+url+"}",string(url),-1)
+				u = strings.Replace(reqUrl,"$"+url,string(url),-1)
+				r := &model.Request{Url:u,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
+				if 	newCount := strings.Count(u,"$");newCount != count{
+					reqUrl = u
+					count = newCount
+					if count == 0{
+						reqs = append(reqs,r)
+					}
+				}
+			}
 		}
-		return reqs,true
-	}
 
-	urlStr,ok := ruleUrl.(string)
-	if ok{
-		url := strings.Replace(req.Url,"{"+rule+"}",string(urlStr),1)
-		r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-		reqs = append(reqs,r)
-		return reqs,true
-	}
+		urlStr,ok := ruleUrl.(string)
+		if ok{
+			url := strings.Replace(reqUrl,"{$"+ctxName+"}",string(urlStr),-1)
+			url = strings.Replace(url,"$"+ctxName,string(urlStr),-1)
+			r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
+			if 	newCount := strings.Count(url,"$");newCount != count{
+				reqUrl = url
+				count = newCount
+				if count == 0{
+					reqs = append(reqs,r)
+				}
+			}
+		}
 
-	urlNumber,ok := ruleUrl.(json.Number)
-	if ok{
-		url := strings.Replace(req.Url,"{"+rule+"}",string(urlNumber),1)
-		r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-		reqs = append(reqs,r)
-		return reqs,true
-	}
+		urlNumber,ok := ruleUrl.(json.Number)
+		if ok{
+			url := strings.Replace(reqUrl,"{$"+ctxName+"}",string(urlNumber),-1)
+			url = strings.Replace(url,"$"+ctxName,string(urlNumber),-1)
+			r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
 
-	urlInt,ok := ruleUrl.(int)
-	if ok{
-		url := strings.Replace(req.Url,"{"+rule+"}",strconv.Itoa(urlInt),1)
-		r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-		reqs = append(reqs,r)
-		return reqs,true
+			if 	newCount := strings.Count(url,"$");newCount != count{
+				reqUrl = url
+				count = newCount
+				if count == 0{
+					reqs = append(reqs,r)
+				}
+			}
+		}
+
+		urlInt,ok := ruleUrl.(int)
+		if ok{
+			url := strings.Replace(reqUrl,"{$"+ctxName+"}",strconv.Itoa(urlInt),-1)
+			url = strings.Replace(url,"$"+ctxName,strconv.Itoa(urlInt),-1)
+			r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
+			if 	newCount := strings.Count(url,"$");newCount != count{
+				reqUrl = url
+				count = newCount
+				if count == 0{
+					reqs = append(reqs,r)
+				}
+			}
+		}
+
 	}
 
 	return reqs,true

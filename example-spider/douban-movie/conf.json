@@ -4,5 +4,8 @@
   "work_num": 20,
   "max_wait_num":4096,
   "http_addr":"127.0.0.1:7774",
-  "etcd":["http://127.0.0.1:2379"]
+  "etcd":["http://127.0.0.1:2379"],
+
+  "schedule":"redis",
+  "redis_addr":"127.0.0.1:6379"
 }

@@ -1,5 +1,8 @@
 package model
 
+import (
+	"encoding/json"
+)
 
 type Task struct {
 	Id   string `json:"id"`
@@ -22,6 +25,14 @@ type Request struct {
 	Header map[string]string `json:"header"`
 	Cookies Cookies `json:"cookies"`
 	ProcessName string `json:"process_name"`
+}
+
+func (r *Request)Write() ([]byte,error) {
+	return json.Marshal(r)
+}
+
+func (r *Request)Read(b []byte) error{
+	return json.Unmarshal(b,r)
 }
 
 type Cookies struct {

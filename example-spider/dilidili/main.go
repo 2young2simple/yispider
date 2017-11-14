@@ -35,7 +35,7 @@ func main(){
 				AddQueue:[]*model.Request{
 					{
 						Method:      "get",
-						Url:         "http://www.dilidili.wang{href}",
+						Url:         "http://www.dilidili.wang{$href}",
 						ProcessName: "animeinfo",
 					},
 				},
@@ -53,7 +53,7 @@ func main(){
 				AddQueue:[]*model.Request{
 					{
 						Method:      "get",
-						Url:         "{episode-link}",
+						Url:         "{$episode-link}",
 						ProcessName: "episodeinfo",
 					},
 				},

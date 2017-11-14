@@ -5,7 +5,6 @@ import (
 	"YiSpider/spider/register/etcd"
 	"YiSpider/spider/config"
 	"YiSpider/spider/core"
-	"YiSpider/spider/logger"
 	"YiSpider/spider/spider"
 )
 
@@ -17,7 +16,7 @@ func init(){
 	var err error
 
 	if err = config.InitConfig();err != nil{
-		logger.Info(err.Error())
+		panic(err)
 	}
 }
 

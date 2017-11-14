@@ -10,7 +10,7 @@ func TestPraseOffset(t *testing.T) {
 	reqs := []*model.Request{
 		{
 			Method:"get",
-			Url:"https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0-400,20}",
+			Url:"https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0-10,1}&page={0-10,1}&last={1|2|3}",
 			ProcessName:"movie",
 		},
 	}
@@ -24,7 +24,7 @@ func TestPraseOr(t *testing.T) {
 	reqs := []*model.Request{
 		{
 			Method:"get",
-			Url:"https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0|20|40}",
+			Url:"https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={0|20|40}&page={1|2|3}",
 			ProcessName:"movie",
 		},
 	}
@@ -38,14 +38,23 @@ func TestPraseParamCtx(t *testing.T) {
 	reqs := []*model.Request{
 		{
 			Method:"get",
-			Url:"https://movie.douban.com/j/new_search_subjects?sort=T&url={url}&tags=&name={name}",
+			Url:"https://sclub.jd.com/comment/productPageComments.action?productId={$id}&score=0&sortType=5&page={0-$max_page,1}&pageSize=10",
 			ProcessName:"movie",
 		},
 	}
-	results := PraseReq(reqs,map[string]string{
-		"name":"aabb",
-		"url":"uull",
+	results := PraseReq(reqs,map[string]interface{}{
+		"id":13123123,
+		"max_page":10,
 	})
+	for _,result := range results{
+		fmt.Println(result)
+	}
+}
+
+func TestFindRule(t *testing.T) {
+	url := `"https://movie.douban.com/j/new_search_subjects?sort=T&url={1-$count,1}&tags="`
+
+	results := FindRule(url)
 	for _,result := range results{
 		fmt.Println(result)
 	}

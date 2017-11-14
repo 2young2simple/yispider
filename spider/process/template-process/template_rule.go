@@ -55,7 +55,7 @@ func TemplateRuleProcess(process *model.Process,context model.Context) (*model.P
 				return
 			}
 			if len(process.AddQueue) > 0{
-					page.Urls = append(page.Urls,common.PraseReq(process.AddQueue,data)...)
+				page.Urls = append(page.Urls,common.PraseReq(process.AddQueue,data)...)
 			}
 			result = append(result,data)
 		})

@@ -16,6 +16,8 @@ type Config struct {
 	MaxWaitNum int `json:"max_wait_num"`
 
 	HttpAddr string `json:"http_addr"`
+	RedisAddr string `json:"redis_addr"`
+	ScheduleMode string `json:"schedule"`
 	Etcd []string `json:"etcd"`
 }
 

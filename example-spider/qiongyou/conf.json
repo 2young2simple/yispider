@@ -1,8 +1,11 @@
 {
   "name":"qiongyou_spider",
   "version":"0.01",
-  "work_num": 10,
+  "work_num": 5,
   "max_wait_num":12000,
   "http_addr":"127.0.0.1:7774",
-  "etcd":["http://127.0.0.1:2379"]
+  "etcd":["http://127.0.0.1:2379"],
+
+  "schedule":"redis",
+  "redis_addr":"127.0.0.1:6379"
 }

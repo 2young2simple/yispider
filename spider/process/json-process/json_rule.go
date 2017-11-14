@@ -79,19 +79,26 @@ func Process(process *model.Process,context model.Context) (*model.Page,error){
 			sJson = sJson.Get(name)
 		}
 
-		rootNode,err := sJson.Map()
 		if err != nil {
 			logger.Error("Json fail,",err)
 			return nil,err
 		}
 
 		for key,value := range jsonRule{
-			result[key] = rootNode[value]
+			valueSel := []string{}
+			valueSel = strings.Split(value,".")
+			valueNode := *sJson
+			for _,name := range valueSel{
+				valueNode = *valueNode.Get(name)
+			}
+			result[key] = valueNode.Interface()
 		}
 
+		page.Urls = []*model.Request{}
 		if len(process.AddQueue) > 0{
 			page.Urls = append(page.Urls,common.PraseReq(process.AddQueue,result)...)
 		}
+
 		page.Result = result
 		page.ResultCount = 1
 	}
