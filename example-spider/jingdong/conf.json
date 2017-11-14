@@ -1,0 +1,8 @@
+{
+  "name":"qiongyou_spider",
+  "version":"0.01",
+  "work_num": 128,
+  "max_wait_num":100000000,
+  "http_addr":"127.0.0.1:7774",
+  "etcd":["http://127.0.0.1:2379"]
+}
