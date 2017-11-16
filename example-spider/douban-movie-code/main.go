@@ -39,7 +39,6 @@ func main() {
 	sp := &spider2.Spider{}
 	sp.Name = "douban-movie-code"
 	sp.Id = "douban-movie-code"
-
 	sp.Requests = []*model.Request{
 		{
 			Method:      "get",
@@ -47,9 +46,7 @@ func main() {
 			ProcessName: "movie",
 		},
 	}
-
 	sp.AddProcess("movie", &PageProcess{})
-
 	sp.Pipline = file.NewFilePipline("./")
 
 	app := spider.New()
