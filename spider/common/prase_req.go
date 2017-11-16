@@ -2,113 +2,111 @@ package common
 
 import (
 	"YiSpider/spider/model"
-	"strings"
-	"strconv"
 	"encoding/json"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
-func PraseReq(reqs []*model.Request,ctx map[string]interface{}) []*model.Request{
+func PraseReq(reqs []*model.Request, ctx map[string]interface{}) []*model.Request {
 	resultsReqs := []*model.Request{}
-	for _,req := range reqs{
-		results,ok := isRuleReq(req,ctx)
-		if ok{
-			resultsReqs = append(resultsReqs,results...)
-		}else{
-			resultsReqs = append(resultsReqs,req)
+	for _, req := range reqs {
+		results, ok := isRuleReq(req, ctx)
+		if ok {
+			resultsReqs = append(resultsReqs, results...)
+		} else {
+			resultsReqs = append(resultsReqs, req)
 		}
 	}
 	return resultsReqs
 }
 
-func FindRule(text string) [][]string{
+func FindRule(text string) [][]string {
 	reg := regexp.MustCompile(`{([^}]+)}`)
-	return reg.FindAllStringSubmatch(text,-1)
+	return reg.FindAllStringSubmatch(text, -1)
 }
 
-func isRuleReq(req *model.Request,ctx map[string]interface{}) ([]*model.Request,bool){
+func isRuleReq(req *model.Request, ctx map[string]interface{}) ([]*model.Request, bool) {
 	reqs := []*model.Request{req}
 	outReqs := []*model.Request{}
 	finalReqs := []*model.Request{}
 	isMatch := false
 
 	rules := FindRule(req.Url)
-	if len(rules) > 0{
+	if len(rules) > 0 {
 		isMatch = true
-	}else{
-		return nil,false
+	} else {
+		return nil, false
 	}
 
-	if ctx != nil{
-		reqs,isMatch = PraseParamCtx(req,rules,ctx)
+	if ctx != nil {
+		reqs, isMatch = PraseParamCtx(req, rules, ctx)
 	}
-	for _,r := range reqs {
+	for _, r := range reqs {
 		outReqs = append(outReqs, PraseOffset(r)...)
 	}
 
-	for _,r := range outReqs{
-		finalReqs = append(finalReqs,PraseOr(r)...)
+	for _, r := range outReqs {
+		finalReqs = append(finalReqs, PraseOr(r)...)
 	}
 
-	if isMatch{
-		return finalReqs,true
+	if isMatch {
+		return finalReqs, true
 	}
 
-	return finalReqs,isMatch
+	return finalReqs, isMatch
 }
 
 // http://xxxxxxxx.com/abc/{begin-end,offset}/   example:{1-400,10}
-func PraseOffset(req *model.Request) ([]*model.Request){
+func PraseOffset(req *model.Request) []*model.Request {
 	reqs := []*model.Request{}
 	outrReqs := []*model.Request{}
 
-
 	rules := FindRule(req.Url)
-	if len(rules) <= 0{
+	if len(rules) <= 0 {
 		return []*model.Request{req}
 	}
 
 	rule := rules[0][1]
-	sp := strings.Split(rule,",")
+	sp := strings.Split(rule, ",")
 
-	if len(sp) != 2{
+	if len(sp) != 2 {
 		return []*model.Request{req}
 	}
 
-	rs := strings.Split(sp[0],"-")
-	var begin,end,offset int
+	rs := strings.Split(sp[0], "-")
+	var begin, end, offset int
 	var err error
-	begin,err = strconv.Atoi(rs[0])
-	end,err = strconv.Atoi(rs[1])
-	offset,err = strconv.Atoi(sp[1])
-	if err != nil{
+	begin, err = strconv.Atoi(rs[0])
+	end, err = strconv.Atoi(rs[1])
+	offset, err = strconv.Atoi(sp[1])
+	if err != nil {
 		return []*model.Request{req}
 	}
-	if offset == 0{
+	if offset == 0 {
 		return []*model.Request{req}
 	}
 
-	for i:=begin;i <= end;i = i + offset{
-		url := strings.Replace(req.Url,"{"+rule+"}",strconv.Itoa(i)  ,1)
-		req := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-		reqs = append(reqs,req)
+	for i := begin; i <= end; i = i + offset {
+		url := strings.Replace(req.Url, "{"+rule+"}", strconv.Itoa(i), 1)
+		req := &model.Request{Url: url, Method: req.Method, ContentType: req.ContentType, Data: req.Data, Header: req.Header, Cookies: req.Cookies, ProcessName: req.ProcessName}
+		reqs = append(reqs, req)
 	}
 
-	for _,r := range reqs{
-		outrReqs = append(outrReqs,PraseOffset(r)...)
+	for _, r := range reqs {
+		outrReqs = append(outrReqs, PraseOffset(r)...)
 	}
 
 	return outrReqs
 }
 
 // http://xxxxxxxx.com/abc/{id1|id2|id3}/
-func PraseOr(req *model.Request) ([]*model.Request){
+func PraseOr(req *model.Request) []*model.Request {
 	reqs := []*model.Request{}
 	outrReqs := []*model.Request{}
 
-
 	rules := FindRule(req.Url)
-	if len(rules) <= 0{
+	if len(rules) <= 0 {
 		return []*model.Request{req}
 	}
 	ruleArray := rules[0]
@@ -124,85 +122,84 @@ func PraseOr(req *model.Request) ([]*model.Request){
 		reqs = append(reqs, r)
 	}
 
-	for _,r := range reqs{
-		outrReqs = append(outrReqs,PraseOr(r)...)
+	for _, r := range reqs {
+		outrReqs = append(outrReqs, PraseOr(r)...)
 	}
 
 	return outrReqs
 }
 
 // http://xxxxxxxx.com/abc/{name}/{id}/
-func PraseParamCtx(req *model.Request,rules [][]string,ctx map[string]interface{}) ([]*model.Request,bool){
+func PraseParamCtx(req *model.Request, rules [][]string, ctx map[string]interface{}) ([]*model.Request, bool) {
 	reqs := []*model.Request{}
 	reqUrl := req.Url
 
-	count := strings.Count(reqUrl,"$")
-	if count <= 0{
-		return []*model.Request{req},false
+	count := strings.Count(reqUrl, "$")
+	if count <= 0 {
+		return []*model.Request{req}, false
 	}
 
-	for ctxName,ruleUrl := range ctx{
-		urlArray,ok :=  ruleUrl.([]string)
-		if ok{
-			for _,url := range urlArray{
-				u := strings.Replace(reqUrl,"{$"+url+"}",string(url),-1)
-				u = strings.Replace(reqUrl,"$"+url,string(url),-1)
-				r := &model.Request{Url:u,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-				if 	newCount := strings.Count(u,"$");newCount != count{
+	for ctxName, ruleUrl := range ctx {
+		urlArray, ok := ruleUrl.([]string)
+		if ok {
+			for _, url := range urlArray {
+				u := strings.Replace(reqUrl, "{$"+url+"}", string(url), -1)
+				u = strings.Replace(reqUrl, "$"+url, string(url), -1)
+				r := &model.Request{Url: u, Method: req.Method, ContentType: req.ContentType, Data: req.Data, Header: req.Header, Cookies: req.Cookies, ProcessName: req.ProcessName}
+				if newCount := strings.Count(u, "$"); newCount != count {
 					reqUrl = u
 					count = newCount
-					if count == 0{
-						reqs = append(reqs,r)
+					if count == 0 {
+						reqs = append(reqs, r)
 					}
 				}
 			}
 		}
 
-		urlStr,ok := ruleUrl.(string)
-		if ok{
-			url := strings.Replace(reqUrl,"{$"+ctxName+"}",string(urlStr),-1)
-			url = strings.Replace(url,"$"+ctxName,string(urlStr),-1)
-			r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-			if 	newCount := strings.Count(url,"$");newCount != count{
+		urlStr, ok := ruleUrl.(string)
+		if ok {
+			url := strings.Replace(reqUrl, "{$"+ctxName+"}", string(urlStr), -1)
+			url = strings.Replace(url, "$"+ctxName, string(urlStr), -1)
+			r := &model.Request{Url: url, Method: req.Method, ContentType: req.ContentType, Data: req.Data, Header: req.Header, Cookies: req.Cookies, ProcessName: req.ProcessName}
+			if newCount := strings.Count(url, "$"); newCount != count {
 				reqUrl = url
 				count = newCount
-				if count == 0{
-					reqs = append(reqs,r)
+				if count == 0 {
+					reqs = append(reqs, r)
 				}
 			}
 		}
 
-		urlNumber,ok := ruleUrl.(json.Number)
-		if ok{
-			url := strings.Replace(reqUrl,"{$"+ctxName+"}",string(urlNumber),-1)
-			url = strings.Replace(url,"$"+ctxName,string(urlNumber),-1)
-			r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
+		urlNumber, ok := ruleUrl.(json.Number)
+		if ok {
+			url := strings.Replace(reqUrl, "{$"+ctxName+"}", string(urlNumber), -1)
+			url = strings.Replace(url, "$"+ctxName, string(urlNumber), -1)
+			r := &model.Request{Url: url, Method: req.Method, ContentType: req.ContentType, Data: req.Data, Header: req.Header, Cookies: req.Cookies, ProcessName: req.ProcessName}
 
-			if 	newCount := strings.Count(url,"$");newCount != count{
+			if newCount := strings.Count(url, "$"); newCount != count {
 				reqUrl = url
 				count = newCount
-				if count == 0{
-					reqs = append(reqs,r)
+				if count == 0 {
+					reqs = append(reqs, r)
 				}
 			}
 		}
 
-		urlInt,ok := ruleUrl.(int)
-		if ok{
-			url := strings.Replace(reqUrl,"{$"+ctxName+"}",strconv.Itoa(urlInt),-1)
-			url = strings.Replace(url,"$"+ctxName,strconv.Itoa(urlInt),-1)
-			r := &model.Request{Url:url,Method:req.Method,ContentType:req.ContentType,Data:req.Data,Header:req.Header,Cookies:req.Cookies,ProcessName:req.ProcessName}
-			if 	newCount := strings.Count(url,"$");newCount != count{
+		urlInt, ok := ruleUrl.(int)
+		if ok {
+			url := strings.Replace(reqUrl, "{$"+ctxName+"}", strconv.Itoa(urlInt), -1)
+			url = strings.Replace(url, "$"+ctxName, strconv.Itoa(urlInt), -1)
+			r := &model.Request{Url: url, Method: req.Method, ContentType: req.ContentType, Data: req.Data, Header: req.Header, Cookies: req.Cookies, ProcessName: req.ProcessName}
+			if newCount := strings.Count(url, "$"); newCount != count {
 				reqUrl = url
 				count = newCount
-				if count == 0{
-					reqs = append(reqs,r)
+				if count == 0 {
+					reqs = append(reqs, r)
 				}
 			}
 		}
 
 	}
 
-	return reqs,true
+	return reqs, true
 }
-

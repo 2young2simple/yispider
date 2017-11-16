@@ -1,19 +1,19 @@
 package common
 
 import (
-"fmt"
+	"fmt"
 
-"strings"
+	"strings"
 
-"github.com/saintfish/chardet"
-"golang.org/x/text/encoding"
-"golang.org/x/text/encoding/charmap"
-"golang.org/x/text/encoding/japanese"
-"golang.org/x/text/encoding/korean"
-"golang.org/x/text/encoding/simplifiedchinese"
-"golang.org/x/text/encoding/traditionalchinese"
-"golang.org/x/text/encoding/unicode"
-"golang.org/x/text/transform"
+	"github.com/saintfish/chardet"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/encoding/korean"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/encoding/traditionalchinese"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 )
 
 var (
@@ -39,7 +39,6 @@ var (
 		"windows-1254": charmap.Windows1254,
 		"windows-1255": charmap.Windows1255,
 		"windows-1256": charmap.Windows1256,
-
 	}
 )
 

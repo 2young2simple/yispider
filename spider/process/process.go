@@ -4,7 +4,6 @@ import (
 	"YiSpider/spider/model"
 )
 
-
 type Process interface {
-	Process(context model.Context) (*model.Page,error)
+	Process(context model.Context) (*model.Page, error)
 }

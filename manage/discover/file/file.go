@@ -1,5 +1,5 @@
 package file
 
-func init(){
+func init() {
 
 }

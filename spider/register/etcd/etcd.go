@@ -6,9 +6,9 @@ import (
 	"runtime"
 	"time"
 
+	"YiSpider/spider/core"
 	"github.com/coreos/etcd/client"
 	"golang.org/x/net/context"
-	"YiSpider/spider/core"
 )
 
 type Worker struct {
@@ -18,18 +18,18 @@ type Worker struct {
 }
 
 type WorkerInfo struct {
-	Name string		`json:"name"`
-	IP   string		`json:"ip"`
-	CPU  int		`json:"cpu"`
-	MetaData map[string]string `json:"metadata"`
-	SpiderData map[string]*SpiderData  `json:"spider_data"`
+	Name       string                 `json:"name"`
+	IP         string                 `json:"ip"`
+	CPU        int                    `json:"cpu"`
+	MetaData   map[string]string      `json:"metadata"`
+	SpiderData map[string]*SpiderData `json:"spider_data"`
 }
 type SpiderData struct {
 	DownloadFailCount int32 `json:"download_fail_count"`
-	DownloadCount int32 `json:"download_count"`
+	DownloadCount     int32 `json:"download_count"`
 
-	UrlNum int32 `json:"url_num"`
-	WaitUrlNum int `json:"wait_url_num"`
+	UrlNum           int32 `json:"url_num"`
+	WaitUrlNum       int   `json:"wait_url_num"`
 	CrawlerResultNum int32 `json:"crawler_result_num"`
 }
 
@@ -58,10 +58,10 @@ func (w *Worker) HeartBeat() {
 
 	for {
 		info := &WorkerInfo{
-			Name: w.Name,
-			IP:   w.IP,
-			CPU:  runtime.NumCPU(),
-			SpiderData:getSpiderData(),
+			Name:       w.Name,
+			IP:         w.IP,
+			CPU:        runtime.NumCPU(),
+			SpiderData: getSpiderData(),
 		}
 
 		key := "spiders/" + w.Name
@@ -77,10 +77,10 @@ func (w *Worker) HeartBeat() {
 	}
 }
 
-func getSpiderData() map[string]*SpiderData{
+func getSpiderData() map[string]*SpiderData {
 	datas := make(map[string]*SpiderData)
 	metas := core.GetEnine().GetTaskMetas()
-	for name,meta := range metas{
+	for name, meta := range metas {
 		data := &SpiderData{}
 		data.CrawlerResultNum = meta.CrawlerResultNum
 		data.DownloadFailCount = meta.DownloadFailCount

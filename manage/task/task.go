@@ -1,5 +1,5 @@
 package task
 
-func init(){
+func init() {
 
 }

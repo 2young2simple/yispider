@@ -4,7 +4,7 @@ import (
 	"YiSpider/spider"
 )
 
-func main(){
+func main() {
 	app := spider.New()
 	app.Run()
 }

@@ -1,5 +1,5 @@
 package zookeeper
 
-func init(){
+func init() {
 
 }

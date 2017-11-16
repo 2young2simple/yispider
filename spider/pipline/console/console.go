@@ -1,19 +1,18 @@
 package console
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 )
 
-type ConsolePipline struct{
-
+type ConsolePipline struct {
 }
 
-func NewConsolePipline() *ConsolePipline{
+func NewConsolePipline() *ConsolePipline {
 	return &ConsolePipline{}
 }
 
-func (c *ConsolePipline)ProcessData(v interface{},taskName string,processName string){
-	bytes,_ := json.Marshal(v)
-	fmt.Println("Pipline :",string(bytes))
+func (c *ConsolePipline) ProcessData(v []interface{}, taskName string, processName string) {
+	bytes, _ := json.Marshal(v)
+	fmt.Println("Pipline :", string(bytes))
 }

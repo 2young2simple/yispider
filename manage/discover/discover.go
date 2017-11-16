@@ -13,12 +13,12 @@ type Discover interface {
 
 var DiscoverI Discover
 
-func InitDiscover() error{
+func InitDiscover() error {
 	var err error
 	switch config.ConfigI.Discover {
 	case "etcd":
-		DiscoverI,err = etcd.NewCluster(config.ConfigI.Etcd)
-		if err != nil{
+		DiscoverI, err = etcd.NewCluster(config.ConfigI.Etcd)
+		if err != nil {
 			return err
 		}
 		DiscoverI.Start()
@@ -26,8 +26,8 @@ func InitDiscover() error{
 	return nil
 }
 
-func GetNodes() map[string]*model.Node{
-	if DiscoverI != nil{
+func GetNodes() map[string]*model.Node {
+	if DiscoverI != nil {
 		return DiscoverI.GetNodes()
 	}
 	return nil

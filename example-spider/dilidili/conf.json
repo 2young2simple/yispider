@@ -1,8 +1,11 @@
 {
-  "name":"sohu_spider",
+  "name":"dilidili_spider",
   "version":"0.01",
-  "work_num": 200,
-  "max_wait_num":12000,
+  "work_num": 100,
+  "max_wait_num":1000000,
   "http_addr":"127.0.0.1:7774",
-  "etcd":["http://127.0.0.1:2379"]
+  "etcd":["http://127.0.0.1:2379"],
+
+  "schedule":"redis",
+  "redis_addr":"127.0.0.1:6379"
 }

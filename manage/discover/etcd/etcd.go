@@ -4,20 +4,20 @@ import (
 	"encoding/json"
 	"time"
 
+	"YiSpider/manage/logger"
+	"YiSpider/manage/model"
+	"fmt"
 	"github.com/coreos/etcd/client"
 	"golang.org/x/net/context"
-	"YiSpider/manage/logger"
 	"log"
-	"fmt"
-	"YiSpider/manage/model"
 )
 
 type Cluster struct {
-	nodes map[string]*model.Node
+	nodes   map[string]*model.Node
 	KeysAPI client.KeysAPI
 }
 
-func NewCluster(endpoints []string) (*Cluster,error){
+func NewCluster(endpoints []string) (*Cluster, error) {
 	cfg := client.Config{
 		Endpoints:               endpoints,
 		Transport:               client.DefaultTransport,
@@ -27,34 +27,34 @@ func NewCluster(endpoints []string) (*Cluster,error){
 	etcdClient, err := client.New(cfg)
 	if err != nil {
 		logger.Error("Error: cannot connec to etcd:", err)
-		return nil,err
+		return nil, err
 	}
 
 	master := &Cluster{
-		nodes: make(map[string]*model.Node),
+		nodes:   make(map[string]*model.Node),
 		KeysAPI: client.NewKeysAPI(etcdClient),
 	}
-	return master,nil
+	return master, nil
 }
 
-func (c *Cluster) Start() error{
+func (c *Cluster) Start() error {
 	go c.WatchWorkers()
 	fmt.Println("Master Start ...")
 	return nil
 }
 
-func (c *Cluster) GetNodes() map[string]*model.Node{
-	fmt.Println("c.nodes",c.nodes)
+func (c *Cluster) GetNodes() map[string]*model.Node {
+	fmt.Println("c.nodes", c.nodes)
 	return c.nodes
 }
 
 func (c *Cluster) addWorker(info *model.WorkerInfo) {
 	node := &model.Node{
-		IsHealth: true,
-		IP:      info.IP,
-		Name:    info.Name,
-		CPU:     info.CPU,
-		MetaData:info.MetaData,
+		IsHealth:   true,
+		IP:         info.IP,
+		Name:       info.Name,
+		CPU:        info.CPU,
+		MetaData:   info.MetaData,
 		SpiderData: info.SpiderData,
 	}
 	c.nodes[node.Name] = node

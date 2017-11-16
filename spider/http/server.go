@@ -1,15 +1,15 @@
 package http
 
 import (
-	"net/http"
-	"log"
-	"net/url"
-	"YiSpider/spider/core"
-	"encoding/json"
 	"YiSpider/spider/config"
-	"io/ioutil"
-	spider2 "YiSpider/spider/spider"
+	"YiSpider/spider/core"
 	"YiSpider/spider/model"
+	spider2 "YiSpider/spider/spider"
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
 )
 
 var errorMethod = []byte("{\"code\":\"400\",\"msg\":\"not support method\"}")
@@ -18,26 +18,24 @@ var errorJson = []byte("{\"code\":\"400\",\"msg\":\"error prase json \"}")
 var errorReadBody = []byte("{\"code\":\"400\",\"msg\":\"error read body\"}")
 var commonSuccess = []byte("{\"code\":\"200\",\"msg\":\"success\"}")
 
-
-
 func AddTask(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST"{
+	if req.Method != "POST" {
 		w.Write(errorMethod)
 		return
 	}
-	body,err := ioutil.ReadAll(req.Body)
-	if err != nil{
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
 		w.Write(errorReadBody)
 		return
 	}
 	spider := &model.Task{}
-	err = json.Unmarshal(body,spider)
-	if err != nil{
+	err = json.Unmarshal(body, spider)
+	if err != nil {
 		w.Write(errorJson)
 		return
 	}
 	err = core.GetEnine().AddSpider(spider2.InitWithTask(spider)).RunTask(spider.Name)
-	if err != nil{
+	if err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -46,18 +44,18 @@ func AddTask(w http.ResponseWriter, req *http.Request) {
 }
 
 func StopTask(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "GET"{
+	if req.Method != "GET" {
 		w.Write(errorMethod)
 		return
 	}
 
 	queryMap, err := url.ParseQuery(req.URL.RawQuery)
-	if err != nil{
+	if err != nil {
 		w.Write(errorQuery)
 		return
 	}
 	name := queryMap.Get("name")
-	if err := core.GetEnine().StopTask(name);err != nil{
+	if err := core.GetEnine().StopTask(name); err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -66,18 +64,18 @@ func StopTask(w http.ResponseWriter, req *http.Request) {
 }
 
 func RunTask(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "GET"{
+	if req.Method != "GET" {
 		w.Write(errorMethod)
 		return
 	}
 
 	queryMap, err := url.ParseQuery(req.URL.RawQuery)
-	if err != nil{
+	if err != nil {
 		w.Write(errorQuery)
 		return
 	}
 	name := queryMap.Get("name")
-	if err := core.GetEnine().RunTask(name);err != nil{
+	if err := core.GetEnine().RunTask(name); err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -86,18 +84,18 @@ func RunTask(w http.ResponseWriter, req *http.Request) {
 }
 
 func EndTask(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "GET"{
+	if req.Method != "GET" {
 		w.Write(errorMethod)
 		return
 	}
 
 	queryMap, err := url.ParseQuery(req.URL.RawQuery)
-	if err != nil{
+	if err != nil {
 		w.Write(errorQuery)
 		return
 	}
 	name := queryMap.Get("name")
-	if err := core.GetEnine().EndTask(name);err != nil{
+	if err := core.GetEnine().EndTask(name); err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -106,14 +104,14 @@ func EndTask(w http.ResponseWriter, req *http.Request) {
 }
 
 func ListTask(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "GET"{
+	if req.Method != "GET" {
 		w.Write(errorMethod)
 		return
 	}
 
 	tasks := core.GetEnine().ListTask()
-	datas,err := json.Marshal(tasks)
-	if err != nil{
+	datas, err := json.Marshal(tasks)
+	if err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}

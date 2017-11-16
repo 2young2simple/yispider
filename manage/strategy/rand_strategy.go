@@ -1,13 +1,13 @@
 package strategy
 
 import (
-	"YiSpider/manage/model"
 	"YiSpider/manage/discover"
+	"YiSpider/manage/model"
 )
 
-func GetNode() *model.Node{
+func GetNode() *model.Node {
 	nodes := discover.GetNodes()
-	for _,node := range nodes{
+	for _, node := range nodes {
 		return node
 	}
 	return nil

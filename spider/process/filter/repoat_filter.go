@@ -8,29 +8,28 @@ import (
 var CuckooFilter map[string]int
 var lock sync.RWMutex
 
-func init(){
+func init() {
 	CuckooFilter = make(map[string]int)
 }
 
-func RepeatFilter(url string,process *model.Process) bool{
+func RepeatFilter(url string, process *model.Process) bool {
 	sign := url
-	 if ok := get(sign);ok{
+	if ok := get(sign); ok {
 		return false
 	}
 	put(sign)
 	return true
 }
 
-func get(name string) bool{
+func get(name string) bool {
 	lock.RLock()
 	defer lock.RUnlock()
-	_,ok :=  CuckooFilter[name]
+	_, ok := CuckooFilter[name]
 	return ok
 }
 
-func put(name string){
+func put(name string) {
 	lock.Lock()
 	defer lock.Unlock()
-	CuckooFilter[name]=1
+	CuckooFilter[name] = 1
 }
-

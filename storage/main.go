@@ -5,11 +5,11 @@ import (
 	"YiSpider/storage/logger"
 )
 
-func main(){
+func main() {
 
 	var err error
 
-	if err = config.InitConfig();err != nil{
+	if err = config.InitConfig(); err != nil {
 		logger.Info(err.Error())
 		return
 	}

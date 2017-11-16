@@ -1,23 +1,21 @@
 package http
 
 import (
-	"fmt"
-	"net/http"
 	"bytes"
-	"io/ioutil"
-	"net/http/cookiejar"
-	"golang.org/x/net/publicsuffix"
-	"time"
 	"encoding/json"
+	"fmt"
+	"golang.org/x/net/publicsuffix"
+	"io/ioutil"
+	"net/http"
+	"net/http/cookiejar"
+	"time"
 )
-
 
 var ClientI *http.Client
 
-func init(){
+func init() {
 	ClientI = MakeClient(nil)
 }
-
 
 func makeCookiejar() http.CookieJar {
 	cookiejarOptions := cookiejar.Options{
@@ -32,40 +30,39 @@ func MakeClient(transport http.RoundTripper) *http.Client {
 	return &http.Client{Jar: makeCookiejar(), Transport: transport, Timeout: 5 * time.Second}
 }
 
-
-func Get(url string) ([]byte,error) {
-	res, err := DoRequest("GET",url,nil)
+func Get(url string) ([]byte, error) {
+	res, err := DoRequest("GET", url, nil)
 	if err != nil {
-		return []byte{},err
+		return []byte{}, err
 	}
 	var body []byte
 	if body, err = ioutil.ReadAll(res.Body); err != nil {
-		return []byte{},err
+		return []byte{}, err
 	}
-	fmt.Println("GET",url, " =>", string(body))
+	fmt.Println("GET", url, " =>", string(body))
 
-	return body,nil
+	return body, nil
 }
 
-func Post(url string,data interface{}) ([]byte,error) {
-	dataJ,err := json.Marshal(data)
-	if err != nil{
-		return []byte{},err
-	}
-	fmt.Println("Request:",string(dataJ))
-	res, err := DoRequest("POST",url,dataJ)
+func Post(url string, data interface{}) ([]byte, error) {
+	dataJ, err := json.Marshal(data)
 	if err != nil {
-		return []byte{},err
+		return []byte{}, err
+	}
+	fmt.Println("Request:", string(dataJ))
+	res, err := DoRequest("POST", url, dataJ)
+	if err != nil {
+		return []byte{}, err
 	}
 	var body []byte
 	if body, err = ioutil.ReadAll(res.Body); err != nil {
-		return []byte{},err
+		return []byte{}, err
 	}
 
-	return body,nil
+	return body, nil
 }
 
-func DoRequest(method string,url string,data []byte) (resp *http.Response, err error){
+func DoRequest(method string, url string, data []byte) (resp *http.Response, err error) {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err

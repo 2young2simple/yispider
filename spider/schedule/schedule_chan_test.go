@@ -2,7 +2,6 @@ package schedule
 
 import (
 	"testing"
-
 )
 
 func TestInitDownloader(t *testing.T) {
@@ -14,4 +13,3 @@ func TestInitDownloader(t *testing.T) {
 	//}
 	//fmt.Println(task)
 }
-

@@ -1,5 +1,5 @@
 package elasticsearch
 
-func init(){
+func init() {
 
 }
