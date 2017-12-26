@@ -36,6 +36,7 @@ func main() {
 				},
 			},
 		},
+		Pipline:"mysql",
 	}
 
 	app := spider.New()
