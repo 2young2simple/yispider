@@ -37,7 +37,7 @@ func main() {
 			},
 		},
 
-		Pipline: "file",
+		Pipline: "mysql",
 	}
 
 	app := spider.New()

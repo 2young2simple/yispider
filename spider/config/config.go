@@ -19,6 +19,8 @@ type Config struct {
 	RedisAddr    string   `json:"redis_addr"`
 	ScheduleMode string   `json:"schedule"`
 	Etcd         []string `json:"etcd"`
+
+	Mysql        string `json:"mysql"`
 }
 
 func InitConfig() error {

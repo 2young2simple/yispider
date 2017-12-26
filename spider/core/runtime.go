@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"sync"
 	"sync/atomic"
+	"YiSpider/spider/pipline/mysql"
 )
 
 const Default_WorkNum = 1
@@ -58,6 +59,10 @@ func NewSpiderRuntime() *SpiderRuntime {
 	meta.CrawlerResultNum = int32(0)
 
 	s.TaskMeta = meta
+
+	if len(config.ConfigI.Mysql) > 0{
+		mysql.InitMysql(config.ConfigI.Mysql)
+	}
 
 	return s
 }

@@ -8,6 +8,8 @@ import (
 	"YiSpider/spider/process"
 	"YiSpider/spider/process/json-process"
 	"YiSpider/spider/process/template-process"
+	"YiSpider/spider/pipline/mysql"
+	"YiSpider/spider/config"
 )
 
 type Spider struct {
@@ -82,7 +84,17 @@ func InitWithTask(task *model.Task) *Spider {
 		s.Pipline = console.NewConsolePipline()
 	case "file":
 		s.Pipline = file.NewFilePipline("./")
+	case "mysql":
+		s.Pipline = mysql.NewMysqlPipline()
+
+	default:
+		if len(config.ConfigI.Mysql) > 0{
+			s.Pipline = mysql.NewMysqlPipline()
+		}else{
+			s.Pipline = file.NewFilePipline("./")
+		}
 	}
+
 
 	return s
 }

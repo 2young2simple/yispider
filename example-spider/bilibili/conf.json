@@ -7,5 +7,8 @@
   "etcd":["http://127.0.0.1:2379"],
 
   "schedule":"redis",
-  "redis_addr":"127.0.0.1:6379"
+  "redis_addr":"127.0.0.1:6379",
+
+  "mysql":"root:123456@tcp(127.0.0.1:3306)/auto_db?charset=utf8"
+
 }

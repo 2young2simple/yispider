@@ -36,7 +36,6 @@ func main() {
 				},
 			},
 		},
-		Pipline: "file",
 	}
 
 	app := spider.New()

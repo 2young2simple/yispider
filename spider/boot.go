@@ -34,9 +34,10 @@ func (s *Boot) Run() {
 
 	s.engine.Run()
 
-	worker := etcd.NewWorker(config.ConfigI.Name, config.ConfigI.HttpAddr, config.ConfigI.Etcd)
-	go worker.HeartBeat()
+	if len(config.ConfigI.Etcd) > 0{
+		worker := etcd.NewWorker(config.ConfigI.Name, config.ConfigI.HttpAddr, config.ConfigI.Etcd)
+		go worker.HeartBeat()
+	}
 
 	http.InitHttpServer()
-
 }

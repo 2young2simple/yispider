@@ -67,23 +67,33 @@ func PraseOffset(req *model.Request) []*model.Request {
 		return []*model.Request{req}
 	}
 
-	rule := rules[0][1]
-	sp := strings.Split(rule, ",")
-
-	if len(sp) != 2 {
-		return []*model.Request{req}
-	}
-
-	rs := strings.Split(sp[0], "-")
 	var begin, end, offset int
-	var err error
-	begin, err = strconv.Atoi(rs[0])
-	end, err = strconv.Atoi(rs[1])
-	offset, err = strconv.Atoi(sp[1])
-	if err != nil {
-		return []*model.Request{req}
+	var rule string
+	for _,rulee :=range rules{
+		rule = rulee[1]
+		sp := strings.Split(rule, ",")
+
+		if len(sp) != 2 {
+			continue
+		}
+
+		rs := strings.Split(sp[0], "-")
+
+		var err error
+		begin, err = strconv.Atoi(rs[0])
+		end, err = strconv.Atoi(rs[1])
+		offset, err = strconv.Atoi(sp[1])
+		if err != nil {
+			continue
+		}
+		if offset == 0 {
+			continue
+		}
+
+		break
 	}
-	if offset == 0 {
+
+	if begin == 0 && end == 0 && offset == 0{
 		return []*model.Request{req}
 	}
 
